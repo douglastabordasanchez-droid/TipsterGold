@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   XAxis,
@@ -247,6 +247,11 @@ const professionalGallery = [
   { img: "/gallery/gallery-16.png", caption: "Pasión por el fútbol" },
 ];
 
+const musicTracks = [
+  { src: "/track-mix-mundial.mp3", title: "Mix Mundial Fútbol 2022" },
+  { src: "/track-uefa-anthem.mp3", title: "UEFA Champions League Anthem" },
+];
+
 const featuredVideos = [
   {
     id: "FcNq4P1Ywjs",
@@ -369,8 +374,108 @@ const products = [
 const navLinks = ["Inicio", "Beneficios", "Resultados", "Estadísticas", "Testimonios", "Productos"];
 const sectionIds = ["hero", "beneficios", "resultados", "estadisticas", "testimonios", "planes"];
 
+// ─── Demo access gate ───────────────────────────────────────────────────────
+// Set to false to remove the password gate once the client purchases the site.
+const DEMO_LOCK_ENABLED = true;
+const DEMO_PASSWORD = "PRUEBA";
+const DEMO_STORAGE_KEY = "tg_demo_unlocked";
+
+function DemoGate({ onUnlock }: { onUnlock: () => void }) {
+  const [value, setValue] = useState("");
+  const [error, setError] = useState(false);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (value.trim().toUpperCase() === DEMO_PASSWORD) {
+      localStorage.setItem(DEMO_STORAGE_KEY, "true");
+      onUnlock();
+    } else {
+      setError(true);
+      setValue("");
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      style={{ background: "#0a0a0a" }}
+    >
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(circle at 50% 40%, rgba(0,255,102,0.1) 0%, transparent 60%)",
+        }}
+      />
+      <motion.form
+        onSubmit={handleSubmit}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative z-10 w-full max-w-sm rounded-3xl p-8 text-center"
+        style={{
+          background: "rgba(17,17,17,0.9)",
+          border: "1px solid rgba(0,255,102,0.25)",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+        }}
+      >
+        <img src="/logo.png" alt="TipsterGold" className="w-16 h-16 mx-auto mb-4 object-contain" />
+        <h1 className="text-lg font-black mb-2" style={{ fontFamily: "Poppins" }}>
+          Tipster<span style={{ color: "#00ff66" }}>Gold</span>
+        </h1>
+        <p className="text-xs mb-6" style={{ color: "#b3b3b3" }}>
+          Vista previa privada. Ingresa la palabra clave para continuar.
+        </p>
+        <motion.input
+          animate={error ? { x: [0, -8, 8, -8, 8, 0] } : {}}
+          transition={{ duration: 0.4 }}
+          type="text"
+          autoFocus
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setError(false);
+          }}
+          placeholder="Palabra clave"
+          className="w-full text-center px-4 py-3 rounded-xl text-sm mb-3 outline-none"
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: error ? "1px solid #ff4d4d" : "1px solid rgba(255,255,255,0.12)",
+            color: "#ffffff",
+            fontFamily: "Inter",
+            letterSpacing: "0.1em",
+          }}
+        />
+        {error && (
+          <p className="text-xs mb-3" style={{ color: "#ff6b6b" }}>
+            Palabra clave incorrecta, intenta de nuevo.
+          </p>
+        )}
+        <button
+          type="submit"
+          className="w-full py-3 rounded-xl font-bold text-sm"
+          style={{ background: "#00ff66", color: "#0a0a0a", fontFamily: "Poppins" }}
+        >
+          Desbloquear
+        </button>
+      </motion.form>
+    </div>
+  );
+}
+
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function App() {
+  const [unlocked, setUnlocked] = useState(
+    () => !DEMO_LOCK_ENABLED || localStorage.getItem(DEMO_STORAGE_KEY) === "true"
+  );
+
+  if (DEMO_LOCK_ENABLED && !unlocked) {
+    return <DemoGate onUnlock={() => setUnlocked(true)} />;
+  }
+
+  return <SiteContent />;
+}
+
+// ─── SITE CONTENT (only mounted once unlocked) ─────────────────────────────
+function SiteContent() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [selectedResult, setSelectedResult] = useState<(typeof results)[0] | null>(null);
@@ -378,6 +483,7 @@ export default function App() {
   const [galleryPaused, setGalleryPaused] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+  const [testimonialsPaused, setTestimonialsPaused] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -386,7 +492,12 @@ export default function App() {
   }, []);
 
   const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    const el = document.getElementById(id);
+    if (el) {
+      const headerOffset = window.innerWidth < 768 ? 72 : 96;
+      const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
+      window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+    }
     setMobileMenu(false);
   };
 
@@ -426,6 +537,60 @@ export default function App() {
     if (bannerInView) v.play().catch(() => {});
     else v.pause();
   }, [bannerInView]);
+
+  // ─── Background music player ───────────────────────────────────────────────
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const wantsPlayingRef = useRef(true);
+  const [trackIndex, setTrackIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [volume, setVolume] = useState(0.1);
+
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    a.volume = volume;
+    a.play().catch(() => {});
+    const resume = () => {
+      if (wantsPlayingRef.current && a.paused) a.play().catch(() => {});
+    };
+    window.addEventListener("pointerdown", resume);
+    window.addEventListener("keydown", resume);
+    return () => {
+      window.removeEventListener("pointerdown", resume);
+      window.removeEventListener("keydown", resume);
+    };
+  }, []);
+
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    a.load();
+    a.volume = volume;
+    if (wantsPlayingRef.current) a.play().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trackIndex]);
+
+  const togglePlay = () => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (a.paused) {
+      a.play().catch(() => {});
+      wantsPlayingRef.current = true;
+      setIsPlaying(true);
+    } else {
+      a.pause();
+      wantsPlayingRef.current = false;
+      setIsPlaying(false);
+    }
+  };
+
+  const changeVolume = (v: number) => {
+    setVolume(v);
+    if (audioRef.current) audioRef.current.volume = v;
+  };
+
+  const switchTrack = () => setTrackIndex((i) => (i + 1) % musicTracks.length);
+  const onTrackEnded = () => setTrackIndex((i) => (i + 1) % musicTracks.length);
 
   return (
     <div style={{ background: "#0a0a0a", minHeight: "100vh", overflowX: "hidden" }}>
@@ -1206,41 +1371,29 @@ export default function App() {
                   style={{ border: "1px solid rgba(255,255,255,0.06)", background: "rgba(17,17,17,0.9)" }}
                 >
                   <div className="relative aspect-video">
-                    {playingVideo === v.id ? (
-                      <iframe
-                        className="absolute inset-0 w-full h-full"
-                        src={`https://www.youtube.com/embed/${v.id}?autoplay=1`}
-                        title={v.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
+                    <button
+                      type="button"
+                      onClick={() => setPlayingVideo(v.id)}
+                      className="absolute inset-0 w-full h-full group"
+                    >
+                      <img
+                        src={`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`}
+                        alt={v.title}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
                       />
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setPlayingVideo(v.id)}
-                        className="absolute inset-0 w-full h-full group"
-                      >
-                        <img
-                          src={`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`}
-                          alt={v.title}
-                          loading="lazy"
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.35)" }} />
+                      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.35)" }} />
+                      <div className="absolute inset-0 flex items-center justify-center">
                         <div
-                          className="absolute inset-0 flex items-center justify-center"
+                          className="w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+                          style={{ background: "rgba(0,255,102,0.9)", color: "#0a0a0a" }}
                         >
-                          <div
-                            className="w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
-                            style={{ background: "rgba(0,255,102,0.9)", color: "#0a0a0a" }}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="md:w-5 md:h-5">
-                              <path d="M8 5v14l11-7z" />
-                            </svg>
-                          </div>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="md:w-5 md:h-5">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
                         </div>
-                      </button>
-                    )}
+                      </div>
+                    </button>
                   </div>
                   <div className="p-2.5 md:p-4">
                     <p className="text-xs md:text-sm font-semibold leading-snug" style={{ fontFamily: "Inter", color: "#ffffff" }}>
@@ -1265,6 +1418,47 @@ export default function App() {
           </Section>
         </div>
       </section>
+
+      {/* Video modal */}
+      <AnimatePresence>
+        {playingVideo && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.94)", backdropFilter: "blur(8px)" }}
+            onClick={() => setPlayingVideo(null)}
+          >
+            <button
+              className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 rounded-full flex items-center justify-center text-white z-10"
+              style={{ background: "rgba(255,255,255,0.1)" }}
+              onClick={() => setPlayingVideo(null)}
+              aria-label="Cerrar video"
+            >
+              ✕
+            </button>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-3xl rounded-2xl overflow-hidden"
+              style={{ border: "1px solid rgba(0,255,102,0.25)" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative w-full aspect-video" style={{ background: "#000" }}>
+                <iframe
+                  className="absolute inset-0 w-full h-full"
+                  src={`https://www.youtube.com/embed/${playingVideo}?autoplay=1`}
+                  title={featuredVideos.find((v) => v.id === playingVideo)?.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── RESULTS ── */}
       <section id="resultados" className="py-12 md:py-28" style={{ background: "#0a0a0a" }}>
@@ -1507,7 +1701,12 @@ export default function App() {
 
         {/* Testimonials infinite scroll */}
         <div className="relative overflow-hidden">
-          <div className="flex gap-5 scroll-left" style={{ width: "max-content" }}>
+          <div
+            className="flex gap-5 scroll-left cursor-pointer"
+            style={{ width: "max-content", animationPlayState: testimonialsPaused ? "paused" : "running" }}
+            onClick={() => setTestimonialsPaused((p) => !p)}
+            title={testimonialsPaused ? "Toca para reanudar" : "Toca para pausar"}
+          >
             {[...testimonials, ...testimonials].map((t, i) => (
               <div
                 key={i}
@@ -1934,6 +2133,64 @@ export default function App() {
           }}
         />
       </motion.a>
+
+      {/* ── MUSIC PLAYER ── */}
+      <audio ref={audioRef} src={musicTracks[trackIndex].src} onEnded={onTrackEnded} preload="auto" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2 }}
+        className="fixed z-50 bottom-5 left-5 md:bottom-6 md:left-6 flex items-center gap-2 pl-2 pr-3 py-2 rounded-full"
+        style={{
+          background: "rgba(17,17,17,0.85)",
+          border: "1px solid rgba(0,255,102,0.25)",
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+        }}
+        title={musicTracks[trackIndex].title}
+      >
+        <button
+          type="button"
+          onClick={togglePlay}
+          aria-label={isPlaying ? "Pausar música" : "Reproducir música"}
+          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+          style={{ background: "#00ff66", color: "#0a0a0a" }}
+        >
+          {isPlaying ? (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="5" y="4" width="5" height="16" rx="1" />
+              <rect x="14" y="4" width="5" height="16" rx="1" />
+            </svg>
+          ) : (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 4l14 8-14 8V4z" />
+            </svg>
+          )}
+        </button>
+
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={volume}
+          onChange={(e) => changeVolume(parseFloat(e.target.value))}
+          aria-label="Volumen"
+          className="w-12 md:w-16 accent-[#00ff66]"
+        />
+
+        <button
+          type="button"
+          onClick={switchTrack}
+          aria-label="Cambiar canción"
+          className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+          style={{ background: "rgba(255,255,255,0.08)", color: "#ffffff" }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M5 5v14l9-7-9-7zM15 5v14l9-7-9-7z" />
+          </svg>
+        </button>
+      </motion.div>
     </div>
   );
 }
