@@ -248,8 +248,8 @@ const professionalGallery = [
 ];
 
 const musicTracks = [
-  { src: "/track-mix-mundial.mp3", title: "Mix Mundial Fútbol 2022" },
   { src: "/track-uefa-anthem.mp3", title: "UEFA Champions League Anthem" },
+  { src: "/track-mix-mundial.mp3", title: "Mix Mundial Fútbol 2022" },
 ];
 
 const featuredVideos = [
@@ -378,7 +378,6 @@ const sectionIds = ["hero", "beneficios", "resultados", "estadisticas", "testimo
 // Set to false to remove the password gate once the client purchases the site.
 const DEMO_LOCK_ENABLED = true;
 const DEMO_PASSWORD = "PRUEBA";
-const DEMO_STORAGE_KEY = "tg_demo_unlocked";
 
 function DemoGate({ onUnlock }: { onUnlock: () => void }) {
   const [value, setValue] = useState("");
@@ -387,7 +386,6 @@ function DemoGate({ onUnlock }: { onUnlock: () => void }) {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (value.trim().toUpperCase() === DEMO_PASSWORD) {
-      localStorage.setItem(DEMO_STORAGE_KEY, "true");
       onUnlock();
     } else {
       setError(true);
@@ -463,9 +461,7 @@ function DemoGate({ onUnlock }: { onUnlock: () => void }) {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [unlocked, setUnlocked] = useState(
-    () => !DEMO_LOCK_ENABLED || localStorage.getItem(DEMO_STORAGE_KEY) === "true"
-  );
+  const [unlocked, setUnlocked] = useState(() => !DEMO_LOCK_ENABLED);
 
   if (DEMO_LOCK_ENABLED && !unlocked) {
     return <DemoGate onUnlock={() => setUnlocked(true)} />;
@@ -492,13 +488,18 @@ function SiteContent() {
   }, []);
 
   const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      const headerOffset = window.innerWidth < 768 ? 72 : 96;
-      const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
-      window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
-    }
     setMobileMenu(false);
+    // Defer until after the mobile menu's close reflow so the target
+    // section's position is measured against its final, settled layout.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const headerOffset = window.innerWidth < 768 ? 72 : 96;
+        const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
+        window.scrollTo(0, Math.max(top, 0));
+      });
+    });
   };
 
   const closeLightbox = () => setLightboxIndex(null);
