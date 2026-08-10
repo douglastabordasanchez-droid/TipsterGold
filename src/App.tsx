@@ -623,6 +623,38 @@ const legalDocs: LegalDoc[] = [
   },
 ];
 
+// Pasos del método, con una foto real de Brayan en cada uno
+const analysisSteps = [
+  {
+    img: "/gallery/gallery-15.png",
+    alt: "Brayan analizando partidos con el portátil",
+    pos: "center 35%",
+    title: "Primero el estudio",
+    text: "Antes de poner un peso reviso forma reciente, bajas, calendario, motivación y contexto del partido. La cuota dice cuánto paga, no si vale la pena.",
+  },
+  {
+    img: "/gallery/gallery-09.png",
+    alt: "Signal Iduna Park, Borussia Dortmund",
+    pos: "center 30%",
+    title: "Los datos mandan",
+    text: "Una racha, un presentimiento o el equipo del corazón no son argumentos. La decisión se sostiene con números, no con ganas de que salga.",
+  },
+  {
+    img: "/gallery/gallery-12.png",
+    alt: "San Siro, Milán",
+    pos: "center 32%",
+    title: "Gestiona tu banca",
+    text: "Ninguna selección merece que arriesgues todo. Define tu unidad, respétala siempre y nunca persigas una pérdida con una apuesta más grande.",
+  },
+  {
+    img: "/gallery/gallery-06.png",
+    alt: "Brayan viviendo el fútbol de cerca",
+    pos: "center 28%",
+    title: "Registra y revisa",
+    text: "Lo que no se mide no mejora. Anotar cada entrada es lo que te muestra qué mercados dominas y en cuáles estás perdiendo dinero.",
+  },
+];
+
 const TELEGRAM_FREE = "https://t.me/Tgfutboltips";
 const TELEGRAM_CONTACT = "https://t.me/TipsterGold_1";
 
@@ -1115,6 +1147,7 @@ function SiteContent() {
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [testimonialsPaused, setTestimonialsPaused] = useState(false);
   const [legalDoc, setLegalDoc] = useState<LegalDoc | null>(null);
+  const [avisoAbierto, setAvisoAbierto] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -2296,6 +2329,93 @@ function SiteContent() {
         )}
       </AnimatePresence>
 
+      {/* ── ANALIZAR ANTES DE INVERTIR ── */}
+      <section id="analisis" className="sec-pad" style={{ background: C.panel }}>
+        <div className="wrap">
+          <Section>
+            <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14 max-w-3xl mx-auto">
+              <div
+                className="text-xs font-bold tracking-[0.25em] mb-3"
+                style={{ color: C.gold, fontFamily: "Inter" }}
+              >
+                MÉTODO, NO SUERTE
+              </div>
+              <h2 className="fs-h2 font-black mb-4" style={{ fontFamily: "Poppins" }}>
+                La importancia de <span className="gradient-text">analizar antes de invertir</span>
+              </h2>
+              <p className="fs-body" style={{ color: C.muted }}>
+                Nadie gana a largo plazo adivinando. Detrás de cada entrada hay horas de estudio,
+                números y disciplina. Esto es lo que hago antes de poner un solo peso.
+              </p>
+            </motion.div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+              {analysisSteps.map((step, i) => (
+                <motion.article
+                  key={step.title}
+                  variants={fadeUp}
+                  className="card-hover rounded-2xl overflow-hidden flex flex-col"
+                  style={{
+                    background: "rgba(10,10,10,0.94)",
+                    border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
+                  }}
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <img
+                      src={step.img}
+                      alt={step.alt}
+                      loading="lazy"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      style={{ objectPosition: step.pos }}
+                    />
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "linear-gradient(to top, rgba(10,10,10,0.96) 0%, rgba(10,10,10,0.25) 55%, transparent 100%)",
+                      }}
+                    />
+                    <span
+                      className="absolute top-3 left-3 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black"
+                      style={{
+                        background: "rgba(8,8,8,0.72)",
+                        border: `1px solid ${hexToRgba(C.gold, 0.4)}`,
+                        color: C.goldBright,
+                        fontFamily: "Poppins",
+                        backdropFilter: "blur(6px)",
+                      }}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3
+                      className="fs-h3 font-bold mb-2"
+                      style={{ fontFamily: "Poppins", color: C.ivory }}
+                    >
+                      {step.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed" style={{ color: C.muted }}>
+                      {step.text}
+                    </p>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+
+            <motion.p
+              variants={fadeUp}
+              className="text-center fs-body mt-8 max-w-2xl mx-auto"
+              style={{ color: C.champagne }}
+            >
+              Por eso aquí no se venden corazonadas: se enseña un método para que aprendas a
+              decidir por ti mismo.
+            </motion.p>
+          </Section>
+        </div>
+      </section>
+
       {/* ── RESULTS ── */}
       <section id="resultados" className="sec-pad" style={{ background: C.panel }}>
         <div className="wrap">
@@ -2859,46 +2979,97 @@ function SiteContent() {
             </div>
           </div>
 
-          {/* Aviso legal permanente */}
-          <div
-            className="rounded-2xl px-5 py-4 md:px-6 md:py-5 flex flex-col sm:flex-row items-start gap-4"
-            style={{
-              background: hexToRgba(C.gold, 0.05),
-              border: `1px solid ${hexToRgba(C.gold, 0.18)}`,
-            }}
-          >
-            <span
-              className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-sm font-black"
+          {/* Aviso legal: replegado tras el sello +18, se abre al pulsarlo */}
+          <div className="flex flex-col items-center">
+            <button
+              type="button"
+              onClick={() => setAvisoAbierto((v) => !v)}
+              aria-expanded={avisoAbierto}
+              aria-controls="aviso-legal"
+              className="flex items-center gap-2.5 rounded-full pl-1.5 pr-4 py-1.5 transition-all"
               style={{
-                background: hexToRgba(C.gold, 0.14),
-                border: `1px solid ${hexToRgba(C.gold, 0.4)}`,
-                color: C.goldBright,
-                fontFamily: "Poppins",
+                background: hexToRgba(C.gold, avisoAbierto ? 0.12 : 0.05),
+                border: `1px solid ${hexToRgba(C.gold, avisoAbierto ? 0.45 : 0.22)}`,
               }}
-              aria-label="Solo para mayores de 18 años"
             >
-              +18
-            </span>
-            <p className="text-xs leading-relaxed" style={{ color: C.muted }}>
-              <strong style={{ color: C.champagne }}>Aviso importante.</strong> TipsterGold es un
-              servicio de información y análisis deportivo: no es una casa de apuestas, no acepta
-              apuestas ni administra dinero de terceros. El contenido tiene fines informativos y
-              educativos y no constituye asesoría financiera.{" "}
-              <strong style={{ color: C.champagne }}>No se garantizan ganancias</strong> y los
-              resultados pasados no garantizan resultados futuros; cada decisión de apuesta es
-              responsabilidad exclusiva del usuario. Actividad reservada a mayores de 18 años. Las
-              apuestas conllevan riesgo económico y pueden generar adicción: apuesta solo lo que
-              puedas permitirte perder y, si deja de ser un entretenimiento, busca ayuda
-              profesional.{" "}
-              <button
-                type="button"
-                onClick={() => setLegalDoc(legalDocs[0])}
-                className="underline underline-offset-2"
-                style={{ color: C.gold }}
+              <span
+                className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-black"
+                style={{
+                  background: hexToRgba(C.gold, 0.16),
+                  border: `1px solid ${hexToRgba(C.gold, 0.45)}`,
+                  color: C.goldBright,
+                  fontFamily: "Poppins",
+                }}
               >
-                Leer el aviso legal completo
-              </button>
-            </p>
+                +18
+              </span>
+              <span
+                className="text-[11px] font-bold tracking-[0.14em] uppercase"
+                style={{ color: avisoAbierto ? C.champagne : C.muted, fontFamily: "Inter" }}
+              >
+                Aviso importante
+              </span>
+              <motion.span
+                animate={{ rotate: avisoAbierto ? 180 : 0 }}
+                transition={{ duration: 0.28, ease: easeOut }}
+                style={{ color: C.gold, lineHeight: 0 }}
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </motion.span>
+            </button>
+
+            <AnimatePresence initial={false}>
+              {avisoAbierto && (
+                <motion.div
+                  id="aviso-legal"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.32, ease: easeOut }}
+                  className="overflow-hidden w-full"
+                >
+                  <div
+                    className="mt-4 rounded-2xl px-5 py-4 md:px-6 md:py-5"
+                    style={{
+                      background: hexToRgba(C.gold, 0.05),
+                      border: `1px solid ${hexToRgba(C.gold, 0.18)}`,
+                    }}
+                  >
+                    <p className="text-xs leading-relaxed" style={{ color: C.muted }}>
+                      TipsterGold es un servicio de información y análisis deportivo: no es una
+                      casa de apuestas, no acepta apuestas ni administra dinero de terceros. El
+                      contenido tiene fines informativos y educativos y no constituye asesoría
+                      financiera.{" "}
+                      <strong style={{ color: C.champagne }}>No se garantizan ganancias</strong> y
+                      los resultados pasados no garantizan resultados futuros; cada decisión de
+                      apuesta es responsabilidad exclusiva del usuario. Actividad reservada a
+                      mayores de 18 años. Las apuestas conllevan riesgo económico y pueden generar
+                      adicción: apuesta solo lo que puedas permitirte perder y, si deja de ser un
+                      entretenimiento, busca ayuda profesional.{" "}
+                      <button
+                        type="button"
+                        onClick={() => setLegalDoc(legalDocs[0])}
+                        className="underline underline-offset-2"
+                        style={{ color: C.gold }}
+                      >
+                        Leer el aviso legal completo
+                      </button>
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Bottom bar */}
