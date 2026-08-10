@@ -21,6 +21,12 @@ const C = {
 
 const GOLD_GRAD = "linear-gradient(135deg, #9a7b1f 0%, #f6d66b 45%, #d4af37 100%)";
 
+// Máscara de los retratos que "salen" de su tarjeta: difumina los laterales
+// y la base para que el recorte se funda con el fondo sin bordes rectos.
+const POP_MASK =
+  "linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%), " +
+  "linear-gradient(to bottom, #000 0%, #000 86%, transparent 100%)";
+
 // ─── Utils ──────────────────────────────────────────────────────────────────
 function hexToRgba(hex: string, alpha: number) {
   const n = parseInt(hex.replace("#", ""), 16);
@@ -451,8 +457,15 @@ const heroMetrics = [
   },
 ];
 
-const navLinks = ["Inicio", "Gratis", "Elite", "Grupos", "Resultados", "Productos"];
-const sectionIds = ["hero", "gratuito", "elite", "grupos", "resultados", "planes"];
+// Menú desplegable. Cada entrada apunta al id real de su sección.
+const navLinks = [
+  { label: "Inicio", hint: "Volver arriba", id: "hero" },
+  { label: "Plan Gratis", hint: "Canal gratuito en Telegram", id: "gratuito" },
+  { label: "Plan Elite", hint: "Acceso total a todos los deportes", id: "elite" },
+  { label: "Planes VIP y Élite", hint: "Compara y elige el tuyo", id: "grupos" },
+  { label: "Resultados", hint: "Comprobantes verificados", id: "resultados" },
+  { label: "Más servicios", hint: "Canales por deporte", id: "planes" },
+];
 
 // ─── Marca (logo tipográfico reutilizable) ──────────────────────────────────
 function BrandName({ className = "", style }: { className?: string; style?: CSSProperties }) {
@@ -1006,11 +1019,11 @@ function SiteContent() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3">
                   {navLinks.map((link, i) => (
                     <motion.button
-                      key={link}
+                      key={link.label}
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.04 * i, duration: 0.28 }}
-                      onClick={() => scrollTo(sectionIds[i])}
+                      onClick={() => scrollTo(link.id)}
                       className="group text-left rounded-xl px-4 py-3.5 transition-all"
                       style={{
                         background: hexToRgba(C.gold, 0.04),
@@ -1027,13 +1040,36 @@ function SiteContent() {
                         e.currentTarget.style.borderColor = hexToRgba(C.gold, 0.14);
                       }}
                     >
-                      <span
-                        className="block text-[10px] font-bold tracking-[0.2em] mb-0.5"
-                        style={{ color: C.gold }}
-                      >
-                        {String(i + 1).padStart(2, "0")}
+                      <span className="flex items-center justify-between gap-3">
+                        <span className="min-w-0">
+                          <span className="block text-base font-semibold leading-tight">
+                            {link.label}
+                          </span>
+                          <span
+                            className="block text-[11px] mt-0.5 truncate"
+                            style={{ color: C.muted }}
+                          >
+                            {link.hint}
+                          </span>
+                        </span>
+                        <span
+                          className="flex-shrink-0 transition-transform group-hover:translate-x-1"
+                          style={{ color: C.gold }}
+                        >
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M5 12h14M13 6l6 6-6 6" />
+                          </svg>
+                        </span>
                       </span>
-                      <span className="text-base font-semibold">{link}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -1491,7 +1527,9 @@ function SiteContent() {
           <Section>
             <motion.div
               variants={scaleIn}
-              className="rounded-3xl overflow-hidden grid md:grid-cols-2 relative"
+              // Sin `overflow-hidden`: la foto sobresale por arriba y da
+              // sensación de relieve, como si saliera de la tarjeta.
+              className="rounded-3xl grid md:grid-cols-2 relative mt-8 md:mt-12"
               style={{
                 background: `linear-gradient(120deg, rgba(10,10,10,0.98) 0%, ${hexToRgba(C.gold, 0.07)} 100%)`,
                 border: `1px solid ${hexToRgba(C.gold, 0.2)}`,
@@ -1558,33 +1596,29 @@ function SiteContent() {
                 </motion.a>
               </div>
 
-              {/* Foto */}
-              <div className="relative min-h-[340px] sm:min-h-[420px] md:min-h-[560px] order-1 md:order-2 overflow-hidden">
+              {/* Foto: anclada abajo y más alta que su columna, así asoma
+                  por encima del borde superior de la tarjeta. */}
+              <div className="relative min-h-[300px] sm:min-h-[380px] md:min-h-[520px] order-1 md:order-2">
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    background: `radial-gradient(ellipse 52% 46% at 55% 42%, ${hexToRgba(C.gold, 0.24)} 0%, ${hexToRgba(C.gold, 0.08)} 40%, transparent 70%)`,
-                    filter: "blur(32px)",
+                    background: `radial-gradient(ellipse 52% 46% at 50% 46%, ${hexToRgba(C.gold, 0.22)} 0%, ${hexToRgba(C.gold, 0.07)} 42%, transparent 72%)`,
+                    filter: "blur(34px)",
                   }}
                 />
                 <PhotoWithFallback
                   src={PHOTO_FREE.src}
                   fallback={PHOTO_FREE.fallback}
                   alt="Brayan · Canal gratuito TipsterGold"
-                  className="absolute inset-0 w-full h-full object-cover"
-                  style={{ objectPosition: "center 12%" }}
-                />
-                {/* Fundidos para integrar el recorte con la tarjeta */}
-                <div
-                  className="absolute inset-0 pointer-events-none hidden md:block"
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-auto max-w-none object-contain"
                   style={{
-                    background:
-                      "linear-gradient(to right, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.25) 28%, transparent 55%)",
+                    height: "108%",
+                    maskImage: POP_MASK,
+                    WebkitMaskImage: POP_MASK,
+                    maskComposite: "intersect",
+                    WebkitMaskComposite: "source-in",
+                    filter: `drop-shadow(0 26px 40px rgba(0,0,0,0.75)) drop-shadow(0 0 30px ${hexToRgba(C.gold, 0.18)})`,
                   }}
-                />
-                <div
-                  className="absolute inset-x-0 bottom-0 h-24 pointer-events-none md:hidden"
-                  style={{ background: "linear-gradient(to top, rgba(10,10,10,0.95), transparent)" }}
                 />
               </div>
             </motion.div>
@@ -1598,19 +1632,33 @@ function SiteContent() {
           <Section>
             <motion.div
               variants={scaleIn}
-              className="rounded-3xl overflow-hidden grid md:grid-cols-2 relative"
+              // Sin `overflow-hidden` para que el retrato asome por arriba.
+              className="rounded-3xl grid md:grid-cols-2 relative mt-8 md:mt-12"
               style={{
                 background: `linear-gradient(120deg, ${hexToRgba(C.gold, 0.1)} 0%, rgba(12,11,8,0.98) 62%)`,
                 border: `1px solid ${hexToRgba(C.gold, 0.4)}`,
                 boxShadow: `0 30px 80px rgba(0,0,0,0.6), 0 0 60px ${hexToRgba(C.gold, 0.1)}`,
               }}
             >
-              {/* Foto */}
-              <div className="relative min-h-[380px] sm:min-h-[460px] md:min-h-[620px] overflow-hidden">
+              {/* Insignia en la esquina de la tarjeta, lejos del rostro */}
+              <div
+                className="absolute top-0 right-0 z-20 px-4 py-2 rounded-tr-3xl rounded-bl-2xl text-[10px] md:text-[11px] font-black tracking-[0.16em] uppercase whitespace-nowrap"
+                style={{
+                  background: GOLD_GRAD,
+                  color: C.black,
+                  fontFamily: "Poppins",
+                  boxShadow: `0 8px 26px ${hexToRgba(C.gold, 0.35)}`,
+                }}
+              >
+                Más elegido
+              </div>
+
+              {/* Foto: sobresale por encima del borde de la tarjeta */}
+              <div className="relative min-h-[340px] sm:min-h-[420px] md:min-h-[580px]">
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    background: `radial-gradient(ellipse 50% 46% at 50% 40%, ${hexToRgba(C.gold, 0.26)} 0%, ${hexToRgba(C.gold, 0.09)} 40%, transparent 70%)`,
+                    background: `radial-gradient(ellipse 50% 46% at 50% 46%, ${hexToRgba(C.gold, 0.24)} 0%, ${hexToRgba(C.gold, 0.08)} 42%, transparent 72%)`,
                     filter: "blur(34px)",
                   }}
                 />
@@ -1618,37 +1666,15 @@ function SiteContent() {
                   src={PHOTO_ELITE.src}
                   fallback={PHOTO_ELITE.fallback}
                   alt="Brayan · Membresía Elite TipsterGold"
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-auto max-w-none object-contain"
                   style={{
-                    objectPosition: "center top",
-                    // Se agranda y se baja para que el rostro quede visible
-                    // por debajo de la insignia "Más elegido".
-                    transform: "scale(1.2) translateY(9%)",
-                    transformOrigin: "center top",
+                    height: "107%",
+                    maskImage: POP_MASK,
+                    WebkitMaskImage: POP_MASK,
+                    maskComposite: "intersect",
+                    WebkitMaskComposite: "source-in",
+                    filter: `drop-shadow(0 26px 40px rgba(0,0,0,0.75)) drop-shadow(0 0 30px ${hexToRgba(C.gold, 0.18)})`,
                   }}
-                />
-                {/* Insignia */}
-                <div
-                  className="absolute top-5 left-1/2 -translate-x-1/2 px-5 py-2 rounded-full text-[11px] font-black tracking-[0.18em] uppercase whitespace-nowrap"
-                  style={{
-                    background: GOLD_GRAD,
-                    color: C.black,
-                    fontFamily: "Poppins",
-                    boxShadow: `0 8px 26px ${hexToRgba(C.gold, 0.45)}`,
-                  }}
-                >
-                  Más elegido
-                </div>
-                <div
-                  className="absolute inset-0 pointer-events-none hidden md:block"
-                  style={{
-                    background:
-                      "linear-gradient(to left, rgba(12,11,8,0.95) 0%, rgba(12,11,8,0.25) 26%, transparent 52%)",
-                  }}
-                />
-                <div
-                  className="absolute inset-x-0 bottom-0 h-24 pointer-events-none md:hidden"
-                  style={{ background: "linear-gradient(to top, rgba(12,11,8,0.96), transparent)" }}
                 />
               </div>
 
@@ -2102,12 +2128,6 @@ function SiteContent() {
             </motion.div>
 
             <motion.div variants={fadeUp} className="text-center mb-8 md:mb-12">
-              <div
-                className="text-xs font-bold tracking-[0.25em] mb-3"
-                style={{ color: C.gold, fontFamily: "Inter" }}
-              >
-                ¿LISTO PARA EL SIGUIENTE NIVEL?
-              </div>
               <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
                 ¿LISTO PARA <span className="gradient-text">FORMAR PARTE?</span>
               </h2>
