@@ -417,6 +417,212 @@ const ELITE_PRODUCT = products.find((p) => p.highlight) ?? products[0];
 // "Otros servicios": lo que no son los grupos VIP/Elite, que ya salen arriba
 const otherServices = products.filter((p) => !groupPlans.some((g) => g.id === p.id));
 
+// ─── Textos legales ─────────────────────────────────────────────────────────
+// Protegen a TipsterGold frente a reclamaciones por resultados, dejan claro
+// que el servicio es informativo y cubren datos personales y cookies.
+// PENDIENTE: añadir razón social, NIT y domicilio cuando el cliente los
+// facilite, y que un abogado revise el conjunto antes de darlo por definitivo.
+type LegalDoc = { key: string; menu: string; title: string; body: [string, string[]][] };
+
+const LEGAL_CONTACT = "tipstergold@outlook.com";
+
+const legalDocs: LegalDoc[] = [
+  {
+    key: "aviso",
+    menu: "Aviso Legal",
+    title: "Aviso Legal y Juego Responsable",
+    body: [
+      [
+        "Naturaleza del servicio",
+        [
+          "TipsterGold es un servicio de información, formación y análisis deportivo. No es una casa de apuestas, no organiza juegos de azar, no acepta apuestas ni intermedia en ellas, y no administra dinero de terceros.",
+          "Todo el contenido publicado —análisis, pronósticos, estadísticas y estrategias— tiene finalidad informativa y educativa. En ningún caso constituye asesoría financiera, de inversión, jurídica o fiscal.",
+        ],
+      ],
+      [
+        "Ausencia de garantía de resultados",
+        [
+          "TipsterGold no garantiza ganancias ni resultados concretos de ningún tipo. Cualquier cifra de rendimiento, porcentaje de acierto o retorno mostrada en esta página corresponde a registros históricos y no constituye una promesa ni una previsión.",
+          "Los resultados pasados no garantizan resultados futuros. El comportamiento de un mercado deportivo puede variar por causas ajenas a cualquier análisis.",
+          "La decisión de apostar, el importe destinado y la gestión del capital son responsabilidad exclusiva y personal del usuario. TipsterGold no responde por pérdidas económicas derivadas del uso de su contenido.",
+        ],
+      ],
+      [
+        "Mayores de 18 años",
+        [
+          "El acceso a este sitio y a los canales de TipsterGold está reservado a personas mayores de 18 años. Al utilizarlo, el usuario declara cumplir la edad mínima legal exigida en su país de residencia.",
+          "El usuario es responsable de verificar que la participación en apuestas deportivas sea legal en su jurisdicción y de cumplir la normativa que le resulte aplicable.",
+        ],
+      ],
+      [
+        "Juego responsable",
+        [
+          "Las apuestas deportivas conllevan riesgo económico y pueden generar adicción. Apuesta solo dinero que puedas permitirte perder y nunca lo utilices como fuente de ingresos ni para recuperar pérdidas anteriores.",
+          "Fija límites de tiempo y de dinero antes de empezar y respétalos. No apuestes bajo los efectos del alcohol, de sustancias o en estados de ansiedad, euforia o frustración.",
+          "Si el juego ha dejado de ser un entretenimiento o afecta a tu economía, tu descanso o tus relaciones, interrumpe la actividad y busca ayuda profesional especializada en ludopatía.",
+          "En Colombia, los juegos de suerte y azar están regulados por Coljuegos. Opera únicamente con operadores autorizados en tu país.",
+        ],
+      ],
+      [
+        "Independencia y marcas de terceros",
+        [
+          "TipsterGold no está afiliado, patrocinado ni respaldado por ninguna casa de apuestas, liga, federación o club deportivo.",
+          "Los nombres, marcas y logotipos que puedan aparecer pertenecen a sus respectivos titulares y se mencionan únicamente con fines informativos.",
+        ],
+      ],
+    ],
+  },
+  {
+    key: "terminos",
+    menu: "Términos de Uso",
+    title: "Términos y Condiciones",
+    body: [
+      [
+        "Objeto",
+        [
+          "Estas condiciones regulan el acceso al sitio web de TipsterGold y la contratación de sus canales y membresías de contenido deportivo. Al acceder al sitio o adquirir cualquier plan, el usuario acepta estas condiciones en su totalidad.",
+        ],
+      ],
+      [
+        "Contratación y acceso",
+        [
+          "Los pagos se procesan a través de la pasarela KunFuPay. TipsterGold no almacena datos de tarjetas ni de medios de pago.",
+          "Una vez confirmado el pago, el acceso al canal contratado se entrega por Telegram. Es responsabilidad del usuario facilitar un contacto correcto y revisar la bandeja de entrada del correo indicado.",
+          "El acceso es personal e intransferible. Está prohibido compartir, revender, difundir o reproducir el contenido de los canales, total o parcialmente, por cualquier medio.",
+        ],
+      ],
+      [
+        "Duración, renovación y cancelación",
+        [
+          "Los planes se contratan por el periodo indicado en cada uno de ellos. El usuario puede cancelar la renovación en cualquier momento antes del siguiente cobro escribiendo a " +
+            LEGAL_CONTACT +
+            " o por los canales de soporte publicados.",
+          "La cancelación surte efecto al final del periodo ya abonado; el usuario conserva el acceso hasta esa fecha.",
+        ],
+      ],
+      [
+        "Derecho de retracto y devoluciones",
+        [
+          "Al tratarse de contenido digital de acceso inmediato, el usuario reconoce que la ejecución del servicio comienza en el momento en que se le da acceso al canal.",
+          "Las solicitudes de devolución se atienden caso por caso conforme a la normativa de protección al consumidor aplicable, escribiendo a " +
+            LEGAL_CONTACT +
+            " dentro de los plazos que dicha normativa establezca.",
+        ],
+      ],
+      [
+        "Obligaciones del usuario",
+        [
+          "Utilizar el contenido de forma lícita y personal, sin fines comerciales ni de reventa.",
+          "No suplantar la identidad de TipsterGold ni de sus responsables, ni crear canales, perfiles o comunidades que puedan inducir a confusión.",
+          "Mantener un trato respetuoso en las comunidades. TipsterGold podrá suspender el acceso, sin derecho a reembolso del periodo en curso, ante incumplimientos graves, conductas ofensivas o filtración del contenido.",
+        ],
+      ],
+      [
+        "Propiedad intelectual",
+        [
+          "Los análisis, textos, imágenes, vídeos, planillas, marca y diseño de TipsterGold están protegidos por la normativa de propiedad intelectual y su titularidad corresponde a TipsterGold o a quienes hayan cedido su uso.",
+          "Queda prohibida su reproducción, distribución, comunicación pública o transformación sin autorización previa y por escrito.",
+        ],
+      ],
+      [
+        "Limitación de responsabilidad",
+        [
+          "TipsterGold no responde por las decisiones de apuesta del usuario ni por pérdidas económicas derivadas de ellas.",
+          "Tampoco responde por interrupciones del servicio ajenas a su control, como caídas de Telegram, de la pasarela de pago, del proveedor de alojamiento o de la conexión del usuario.",
+        ],
+      ],
+      [
+        "Modificaciones y ley aplicable",
+        [
+          "TipsterGold puede actualizar estas condiciones, sus planes y sus precios. Los cambios se publican en esta misma página y rigen desde su publicación, sin afectar a periodos ya contratados.",
+          "Estas condiciones se rigen por la legislación colombiana. Para cualquier controversia, las partes se someten a los jueces y tribunales competentes de Colombia.",
+        ],
+      ],
+    ],
+  },
+  {
+    key: "privacidad",
+    menu: "Privacidad",
+    title: "Política de Privacidad",
+    body: [
+      [
+        "Responsable y contacto",
+        [
+          "El responsable del tratamiento de los datos es TipsterGold. Puedes escribir a " +
+            LEGAL_CONTACT +
+            " para cualquier cuestión relacionada con tus datos personales.",
+        ],
+      ],
+      [
+        "Qué datos se tratan",
+        [
+          "Este sitio web no dispone de formularios de registro y no recoge datos por sí mismo.",
+          "Se tratan únicamente los datos que el propio usuario facilita al contactar por Telegram o correo (nombre o alias y datos de contacto) y los necesarios para gestionar una compra, que recaba y procesa la pasarela KunFuPay.",
+        ],
+      ],
+      [
+        "Para qué se usan",
+        [
+          "Gestionar el alta, el acceso y la renovación de los canales contratados.",
+          "Atender consultas y dar soporte.",
+          "Cumplir obligaciones legales, contables y fiscales.",
+          "No se elaboran perfiles automatizados con efectos jurídicos ni se venden datos a terceros.",
+        ],
+      ],
+      [
+        "Terceros que intervienen",
+        [
+          "KunFuPay, como pasarela de pago.",
+          "Telegram, como canal de comunicación y entrega del contenido.",
+          "Vercel, como proveedor de alojamiento del sitio.",
+          "YouTube, al reproducir los vídeos incrustados en la página.",
+          "Cada uno de estos servicios aplica sus propias políticas de privacidad, que el usuario acepta al utilizarlos.",
+        ],
+      ],
+      [
+        "Conservación",
+        [
+          "Los datos se conservan mientras se mantenga la relación con el usuario y, después, durante los plazos exigidos por la normativa contable y fiscal.",
+        ],
+      ],
+      [
+        "Tus derechos",
+        [
+          "Puedes solicitar el acceso, la actualización, la rectificación o la supresión de tus datos, así como revocar la autorización otorgada, conforme a la Ley 1581 de 2012 de protección de datos personales de Colombia.",
+          "Para ejercerlos, escribe a " + LEGAL_CONTACT + " indicando tu solicitud.",
+        ],
+      ],
+    ],
+  },
+  {
+    key: "cookies",
+    menu: "Cookies",
+    title: "Política de Cookies",
+    body: [
+      [
+        "Cookies propias",
+        [
+          "TipsterGold no instala cookies propias de seguimiento, publicidad ni analítica. La navegación por esta página no requiere aceptar cookies para funcionar.",
+        ],
+      ],
+      [
+        "Cookies de terceros",
+        [
+          "Al reproducir un vídeo incrustado, YouTube puede instalar cookies propias en el navegador del usuario, sujetas a la política de privacidad de Google.",
+          "El proveedor de alojamiento puede utilizar cookies o registros técnicos estrictamente necesarios para servir la página y garantizar su seguridad.",
+        ],
+      ],
+      [
+        "Cómo gestionarlas",
+        [
+          "Cualquier navegador permite consultar, bloquear o eliminar las cookies instaladas desde su apartado de configuración o privacidad.",
+          "Bloquear las cookies de terceros puede impedir la reproducción de los vídeos incrustados, sin afectar al resto del sitio.",
+        ],
+      ],
+    ],
+  },
+];
+
 const TELEGRAM_FREE = "https://t.me/Tgfutboltips";
 const TELEGRAM_CONTACT = "https://t.me/TipsterGold_1";
 
@@ -560,6 +766,96 @@ function HeroAmbience() {
         }}
       />
     </div>
+  );
+}
+
+// ─── Ventana con los textos legales ─────────────────────────────────────────
+function LegalModal({ doc, onClose }: { doc: LegalDoc; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    // Evita que la página de fondo se desplace mientras se lee
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[90] flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.9)", backdropFilter: "blur(8px)" }}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={doc.title}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 24, scale: 0.97 }}
+        transition={{ duration: 0.28, ease: easeOut }}
+        className="relative w-full max-w-3xl rounded-3xl overflow-hidden flex flex-col"
+        style={{
+          maxHeight: "min(86vh, 780px)",
+          background: C.panel,
+          border: `1px solid ${hexToRgba(C.gold, 0.3)}`,
+          boxShadow: `0 30px 80px rgba(0,0,0,0.7), 0 0 60px ${hexToRgba(C.gold, 0.08)}`,
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="flex items-center justify-between gap-4 px-6 md:px-8 py-5 flex-shrink-0"
+          style={{ borderBottom: `1px solid ${hexToRgba(C.gold, 0.18)}` }}
+        >
+          <h3 className="text-lg md:text-xl font-black" style={{ fontFamily: "Poppins" }}>
+            <span className="gradient-text">{doc.title}</span>
+          </h3>
+          <button
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: hexToRgba(C.gold, 0.12), color: C.champagne }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-6 md:px-8 py-6 space-y-6">
+          {doc.body.map(([heading, paragraphs]) => (
+            <section key={heading}>
+              <h4
+                className="text-sm font-bold mb-2 tracking-wide"
+                style={{ fontFamily: "Poppins", color: C.goldBright }}
+              >
+                {heading}
+              </h4>
+              <div className="space-y-2">
+                {paragraphs.map((text, i) => (
+                  <p key={i} className="text-sm leading-relaxed" style={{ color: C.muted }}>
+                    {text}
+                  </p>
+                ))}
+              </div>
+            </section>
+          ))}
+
+          <p className="text-xs pt-2" style={{ color: C.dim }}>
+            Última actualización: agosto de 2026 · Para cualquier consulta legal escribe a{" "}
+            <a href={`mailto:${LEGAL_CONTACT}`} style={{ color: C.gold }}>
+              {LEGAL_CONTACT}
+            </a>
+          </p>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -818,6 +1114,7 @@ function SiteContent() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [testimonialsPaused, setTestimonialsPaused] = useState(false);
+  const [legalDoc, setLegalDoc] = useState<LegalDoc | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -893,13 +1190,29 @@ function SiteContent() {
     a.volume = volume;
     a.play().catch(() => {});
     const resume = () => {
-      if (wantsPlayingRef.current && a.paused) a.play().catch(() => {});
+      if (wantsPlayingRef.current && !document.hidden && a.paused) a.play().catch(() => {});
     };
+    // Si el visitante cambia de pestaña, minimiza o bloquea el móvil, la
+    // música se detiene; al volver, sigue solo si él no la había apagado.
+    const onVisibility = () => {
+      if (document.hidden) a.pause();
+      else if (wantsPlayingRef.current) a.play().catch(() => {});
+    };
+    // `pagehide` cubre el cierre de la pestaña y la navegación fuera del sitio,
+    // incluido Safari en iOS, donde `beforeunload` no es fiable.
+    const stop = () => a.pause();
+
     window.addEventListener("pointerdown", resume);
     window.addEventListener("keydown", resume);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", stop);
+
     return () => {
       window.removeEventListener("pointerdown", resume);
       window.removeEventListener("keydown", resume);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", stop);
+      a.pause();
     };
   }, []);
 
@@ -2440,17 +2753,18 @@ function SiteContent() {
                 Legal
               </h4>
               <ul className="space-y-2">
-                {["Términos de Uso", "Privacidad", "Cookies", "Aviso Legal"].map((item) => (
-                  <li key={item}>
-                    <a
-                      href="#"
-                      className="text-sm transition-colors"
+                {legalDocs.map((doc) => (
+                  <li key={doc.key}>
+                    <button
+                      type="button"
+                      onClick={() => setLegalDoc(doc)}
+                      className="text-sm text-left transition-colors"
                       style={{ color: C.muted }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = C.goldBright)}
                       onMouseLeave={(e) => (e.currentTarget.style.color = C.muted)}
                     >
-                      {item}
-                    </a>
+                      {doc.menu}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -2545,17 +2859,55 @@ function SiteContent() {
             </div>
           </div>
 
+          {/* Aviso legal permanente */}
+          <div
+            className="rounded-2xl px-5 py-4 md:px-6 md:py-5 flex flex-col sm:flex-row items-start gap-4"
+            style={{
+              background: hexToRgba(C.gold, 0.05),
+              border: `1px solid ${hexToRgba(C.gold, 0.18)}`,
+            }}
+          >
+            <span
+              className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-sm font-black"
+              style={{
+                background: hexToRgba(C.gold, 0.14),
+                border: `1px solid ${hexToRgba(C.gold, 0.4)}`,
+                color: C.goldBright,
+                fontFamily: "Poppins",
+              }}
+              aria-label="Solo para mayores de 18 años"
+            >
+              +18
+            </span>
+            <p className="text-xs leading-relaxed" style={{ color: C.muted }}>
+              <strong style={{ color: C.champagne }}>Aviso importante.</strong> TipsterGold es un
+              servicio de información y análisis deportivo: no es una casa de apuestas, no acepta
+              apuestas ni administra dinero de terceros. El contenido tiene fines informativos y
+              educativos y no constituye asesoría financiera.{" "}
+              <strong style={{ color: C.champagne }}>No se garantizan ganancias</strong> y los
+              resultados pasados no garantizan resultados futuros; cada decisión de apuesta es
+              responsabilidad exclusiva del usuario. Actividad reservada a mayores de 18 años. Las
+              apuestas conllevan riesgo económico y pueden generar adicción: apuesta solo lo que
+              puedas permitirte perder y, si deja de ser un entretenimiento, busca ayuda
+              profesional.{" "}
+              <button
+                type="button"
+                onClick={() => setLegalDoc(legalDocs[0])}
+                className="underline underline-offset-2"
+                style={{ color: C.gold }}
+              >
+                Leer el aviso legal completo
+              </button>
+            </p>
+          </div>
+
           {/* Bottom bar */}
           <div
-            className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
+            className="mt-8 pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
             style={{ borderTop: `1px solid ${hexToRgba(C.gold, 0.12)}` }}
           >
             <p className="text-xs" style={{ color: C.dim }}>
-              © 2025 TipsterGold. Todos los derechos reservados.
-            </p>
-            <p className="text-xs text-center" style={{ color: C.dim, maxWidth: "400px" }}>
-              Las apuestas deportivas implican riesgo. Apuesta responsablemente. Solo mayores de 18
-              años.
+              © 2026 TipsterGold. Todos los derechos reservados.
             </p>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full pulse-gold" style={{ background: C.gold }} />
@@ -2580,6 +2932,11 @@ function SiteContent() {
           </div>
         </div>
       </footer>
+
+      {/* ── VENTANA LEGAL ── */}
+      <AnimatePresence>
+        {legalDoc && <LegalModal doc={legalDoc} onClose={() => setLegalDoc(null)} />}
+      </AnimatePresence>
 
       {/* ── FLOATING CONTACT BALL ── */}
       <motion.a
