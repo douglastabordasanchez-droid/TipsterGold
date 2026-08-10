@@ -15,6 +15,13 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: emitSourcemaps ? 'inline' : false,
       minify: !emitSourcemaps,
+      // Dos páginas independientes: la web y el blog.
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html'),
+          blog: path.resolve(__dirname, 'blog.html'),
+        },
+      },
     },
     plugins: [
       react(),

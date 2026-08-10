@@ -1,40 +1,12 @@
 import { useState, useEffect, useRef, type FormEvent, type CSSProperties } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-
-// ─── Paleta: negro & dorado (+ champán, bronce, platino, marfil) ─────────────
-const C = {
-  black: "#080808",
-  panel: "#0f0f0f",
-  panel2: "#15120c",
-  gold: "#d4af37",
-  goldBright: "#f6d66b",
-  goldDeep: "#9a7b1f",
-  champagne: "#ead9a6",
-  bronze: "#b87333",
-  platinum: "#c9cdd4",
-  ivory: "#f3eee3",
-  muted: "#a29c90",
-  dim: "#6b665d",
-  win: "#3dd68c",
-  telegram: "#229ed9",
-} as const;
-
-const GOLD_GRAD = "linear-gradient(135deg, #9a7b1f 0%, #f6d66b 45%, #d4af37 100%)";
+import { C, GOLD_GRAD, hexToRgba, TELEGRAM_FREE, TELEGRAM_CONTACT } from "./theme";
 
 // Máscara de los retratos que "salen" de su tarjeta: difumina los laterales
 // y la base para que el recorte se funda con el fondo sin bordes rectos.
 const POP_MASK =
   "linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%), " +
   "linear-gradient(to bottom, #000 0%, #000 86%, transparent 100%)";
-
-// ─── Utils ──────────────────────────────────────────────────────────────────
-function hexToRgba(hex: string, alpha: number) {
-  const n = parseInt(hex.replace("#", ""), 16);
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 // ─── Animation variants ───────────────────────────────────────────────────────
 const easeOut = [0.0, 0.0, 0.2, 1] as const;
@@ -623,40 +595,6 @@ const legalDocs: LegalDoc[] = [
   },
 ];
 
-// Pasos del método, con una foto real de Brayan en cada uno
-const analysisSteps = [
-  {
-    img: "/gallery/gallery-15.png",
-    alt: "Brayan analizando partidos con el portátil",
-    pos: "center 35%",
-    title: "Primero el estudio",
-    text: "Antes de poner un peso reviso forma reciente, bajas, calendario, motivación y contexto del partido. La cuota dice cuánto paga, no si vale la pena.",
-  },
-  {
-    img: "/gallery/gallery-09.png",
-    alt: "Signal Iduna Park, Borussia Dortmund",
-    pos: "center 30%",
-    title: "Los datos mandan",
-    text: "Una racha, un presentimiento o el equipo del corazón no son argumentos. La decisión se sostiene con números, no con ganas de que salga.",
-  },
-  {
-    img: "/gallery/gallery-12.png",
-    alt: "San Siro, Milán",
-    pos: "center 32%",
-    title: "Gestiona tu banca",
-    text: "Ninguna selección merece que arriesgues todo. Define tu unidad, respétala siempre y nunca persigas una pérdida con una apuesta más grande.",
-  },
-  {
-    img: "/gallery/gallery-06.png",
-    alt: "Brayan viviendo el fútbol de cerca",
-    pos: "center 28%",
-    title: "Registra y revisa",
-    text: "Lo que no se mide no mejora. Anotar cada entrada es lo que te muestra qué mercados dominas y en cuáles estás perdiendo dinero.",
-  },
-];
-
-const TELEGRAM_FREE = "https://t.me/Tgfutboltips";
-const TELEGRAM_CONTACT = "https://t.me/TipsterGold_1";
 
 // Métricas del hero. En escritorio flotan alrededor de la foto (posición en
 // left/right, nunca en transform); en móvil se listan quietas debajo.
@@ -695,14 +633,16 @@ const heroMetrics = [
   },
 ];
 
-// Menú desplegable. Cada entrada apunta al id real de su sección.
-const navLinks = [
+// Menú desplegable: `id` salta a una sección; `href` abre otra página.
+type NavLink = { label: string; hint: string; id?: string; href?: string };
+const navLinks: NavLink[] = [
   { label: "Inicio", hint: "Volver arriba", id: "hero" },
   { label: "Plan Gratis", hint: "Canal gratuito en Telegram", id: "gratuito" },
   { label: "Plan Elite", hint: "Acceso total a todos los deportes", id: "elite" },
   { label: "Planes VIP y Élite", hint: "Compara y elige el tuyo", id: "grupos" },
   { label: "Resultados", hint: "Comprobantes verificados", id: "resultados" },
   { label: "Más servicios", hint: "Canales por deporte", id: "planes" },
+  { label: "Blog", hint: "Aprende el método · se abre aparte", href: "/blog" },
 ];
 
 // ─── Marca (logo tipográfico reutilizable) ──────────────────────────────────
@@ -1369,7 +1309,14 @@ function SiteContent() {
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.04 * i, duration: 0.28 }}
-                      onClick={() => scrollTo(link.id)}
+                      onClick={() => {
+                        if (link.href) {
+                          window.open(link.href, "_blank", "noopener,noreferrer");
+                          setMobileMenu(false);
+                        } else if (link.id) {
+                          scrollTo(link.id);
+                        }
+                      }}
                       className="group text-left rounded-xl px-4 py-3.5 transition-all"
                       style={{
                         background: hexToRgba(C.gold, 0.04),
@@ -2329,92 +2276,6 @@ function SiteContent() {
         )}
       </AnimatePresence>
 
-      {/* ── ANALIZAR ANTES DE INVERTIR ── */}
-      <section id="analisis" className="sec-pad" style={{ background: C.panel }}>
-        <div className="wrap">
-          <Section>
-            <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14 max-w-3xl mx-auto">
-              <div
-                className="text-xs font-bold tracking-[0.25em] mb-3"
-                style={{ color: C.gold, fontFamily: "Inter" }}
-              >
-                MÉTODO, NO SUERTE
-              </div>
-              <h2 className="fs-h2 font-black mb-4" style={{ fontFamily: "Poppins" }}>
-                La importancia de <span className="gradient-text">analizar antes de invertir</span>
-              </h2>
-              <p className="fs-body" style={{ color: C.muted }}>
-                Nadie gana a largo plazo adivinando. Detrás de cada entrada hay horas de estudio,
-                números y disciplina. Esto es lo que hago antes de poner un solo peso.
-              </p>
-            </motion.div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-              {analysisSteps.map((step, i) => (
-                <motion.article
-                  key={step.title}
-                  variants={fadeUp}
-                  className="card-hover rounded-2xl overflow-hidden flex flex-col"
-                  style={{
-                    background: "rgba(10,10,10,0.94)",
-                    border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
-                  }}
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
-                      src={step.img}
-                      alt={step.alt}
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover"
-                      style={{ objectPosition: step.pos }}
-                    />
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background:
-                          "linear-gradient(to top, rgba(10,10,10,0.96) 0%, rgba(10,10,10,0.25) 55%, transparent 100%)",
-                      }}
-                    />
-                    <span
-                      className="absolute top-3 left-3 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black"
-                      style={{
-                        background: "rgba(8,8,8,0.72)",
-                        border: `1px solid ${hexToRgba(C.gold, 0.4)}`,
-                        color: C.goldBright,
-                        fontFamily: "Poppins",
-                        backdropFilter: "blur(6px)",
-                      }}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                  </div>
-
-                  <div className="p-5 flex flex-col flex-1">
-                    <h3
-                      className="fs-h3 font-bold mb-2"
-                      style={{ fontFamily: "Poppins", color: C.ivory }}
-                    >
-                      {step.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: C.muted }}>
-                      {step.text}
-                    </p>
-                  </div>
-                </motion.article>
-              ))}
-            </div>
-
-            <motion.p
-              variants={fadeUp}
-              className="text-center fs-body mt-8 max-w-2xl mx-auto"
-              style={{ color: C.champagne }}
-            >
-              Por eso aquí no se venden corazonadas: se enseña un método para que aprendas a
-              decidir por ti mismo.
-            </motion.p>
-          </Section>
-        </div>
-      </section>
 
       {/* ── RESULTS ── */}
       <section id="resultados" className="sec-pad" style={{ background: C.panel }}>
@@ -2851,10 +2712,12 @@ function SiteContent() {
                 Empresa
               </h4>
               <ul className="space-y-2">
-                {["Sobre Nosotros", "Blog", "Carreras", "Prensa"].map((item) => (
+                {["Blog"].map((item) => (
                   <li key={item}>
                     <a
-                      href="#"
+                      href="/blog"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-sm transition-colors"
                       style={{ color: C.muted }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = C.goldBright)}
