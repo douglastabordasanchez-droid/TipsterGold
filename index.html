@@ -14,15 +14,17 @@
     <!-- Vista previa al compartir el enlace (WhatsApp, Telegram, redes).
          og:title, og:description, og:image y twitter:image los inyecta el
          build desde .figma/make/site.json; aquí van los que faltan.
-         Ojo: og:image debe ser una URL absoluta, y si algún día se pone un
-         dominio propio hay que actualizarla también en site.json. -->
+         La imagen es preview-og.jpg: 1200x630 y 129 KB. WhatsApp descarta
+         las og:image que superan ~600 KB y cae al favicon, por eso no vale
+         el PNG original de 1 MB. Debe ser URL absoluta; si se pone dominio
+         propio hay que actualizarla aquí y en site.json. -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="TipsterGold" />
     <meta property="og:locale" content="es_ES" />
     <meta property="og:url" content="https://tipster-gold-4w3s.vercel.app/" />
-    <meta property="og:image:width" content="1536" />
-    <meta property="og:image:height" content="1024" />
-    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:alt" content="TipsterGold — ¿y tú? ¿ya estás ganando?" />
     <meta name="twitter:title" content="TipsterGold | Estrategias Deportivas Basadas en Datos" />
     <meta
