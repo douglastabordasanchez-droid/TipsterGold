@@ -1,14 +1,5 @@
 import { useState, useEffect, useRef, type FormEvent, type CSSProperties } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Area,
-  AreaChart,
-} from "recharts";
 
 // ─── Paleta: negro & dorado (+ champán, bronce, platino, marfil) ─────────────
 const C = {
@@ -69,38 +60,6 @@ function Section({ children, className = "" }: { children: React.ReactNode; clas
   );
 }
 
-// ─── Imagen con respaldo ──────────────────────────────────────────────────────
-// Las fotos brayan2/brayan3 se muestran en cuanto el cliente las suba a /public.
-// Mientras tanto cae a una foto de la galería para que nada quede roto.
-function PhotoWithFallback({
-  src,
-  fallback,
-  alt,
-  className,
-  style,
-}: {
-  src: string;
-  fallback: string;
-  alt: string;
-  className?: string;
-  style?: CSSProperties;
-}) {
-  const [current, setCurrent] = useState(src);
-  useEffect(() => setCurrent(src), [src]);
-  return (
-    <img
-      src={current}
-      alt={alt}
-      className={className}
-      style={style}
-      loading="lazy"
-      onError={() => {
-        if (current !== fallback) setCurrent(fallback);
-      }}
-    />
-  );
-}
-
 // ─── Self-contained count-up hook (no external dependency) ────────────────────
 function useCountUp(end: number, active: boolean, duration = 2.5) {
   const [value, setValue] = useState(0);
@@ -157,6 +116,38 @@ function AnimatedStat({
   );
 }
 
+// ─── Imagen con respaldo ──────────────────────────────────────────────────────
+// Las fotos brayan2/brayan3 se muestran en cuanto el cliente las suba a /public.
+// Mientras tanto cae a una foto de la galería para que nada quede roto.
+function PhotoWithFallback({
+  src,
+  fallback,
+  alt,
+  className,
+  style,
+}: {
+  src: string;
+  fallback: string;
+  alt: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const [current, setCurrent] = useState(src);
+  useEffect(() => setCurrent(src), [src]);
+  return (
+    <img
+      src={current}
+      alt={alt}
+      className={className}
+      style={style}
+      loading="lazy"
+      onError={() => {
+        if (current !== fallback) setCurrent(fallback);
+      }}
+    />
+  );
+}
+
 // ─── Benefit icons ──────────────────────────────────────────────────────────
 type IconProps = { size?: number };
 const iconBase = {
@@ -176,42 +167,10 @@ function IconTarget({ size = 22 }: IconProps) {
     </svg>
   );
 }
-function IconCpu({ size = 22 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...iconBase}>
-      <rect x="6" y="6" width="12" height="12" rx="2" />
-      <rect x="9.5" y="9.5" width="5" height="5" rx="1" />
-      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.5 4.5l2 2M17.5 17.5l2 2M19.5 4.5l-2 2M6.5 17.5l-2 2" />
-    </svg>
-  );
-}
-function IconShield({ size = 22 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...iconBase}>
-      <path d="M12 3l7 3v5.5c0 4.5-3 7.7-7 9.5-4-1.8-7-5-7-9.5V6l7-3z" />
-      <path d="M9 12l2 2 4-4.5" />
-    </svg>
-  );
-}
 function IconChartBar({ size = 22 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...iconBase}>
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
-    </svg>
-  );
-}
-function IconBolt({ size = 22 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...iconBase}>
-      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" />
-    </svg>
-  );
-}
-function IconBell({ size = 22 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...iconBase}>
-      <path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 5.5 2 6.5H4c.5-1 2-2.5 2-6.5Z" />
-      <path d="M10 20a2 2 0 0 0 4 0" />
     </svg>
   );
 }
@@ -249,21 +208,6 @@ function IconTelegram({ size = 18 }: IconProps) {
 }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
-const monthlyData = [
-  { mes: "Ene", roi: 12, precision: 68 },
-  { mes: "Feb", roi: 18, precision: 71 },
-  { mes: "Mar", roi: 15, precision: 74 },
-  { mes: "Abr", roi: 22, precision: 78 },
-  { mes: "May", roi: 28, precision: 82 },
-  { mes: "Jun", roi: 24, precision: 80 },
-  { mes: "Jul", roi: 31, precision: 85 },
-  { mes: "Ago", roi: 35, precision: 87 },
-  { mes: "Sep", roi: 29, precision: 83 },
-  { mes: "Oct", roi: 38, precision: 89 },
-  { mes: "Nov", roi: 42, precision: 91 },
-  { mes: "Dic", roi: 45, precision: 93 },
-];
-
 const testimonials = [
   {
     name: "Fernando Rojas",
@@ -384,45 +328,6 @@ const results = [
   },
 ];
 
-const benefits = [
-  {
-    icon: IconTarget,
-    accent: C.gold,
-    title: "Predicciones Exclusivas",
-    desc: "Accede a análisis diarios de más de 20 ligas globales con probabilidades calculadas por nuestros expertos.",
-  },
-  {
-    icon: IconCpu,
-    accent: C.champagne,
-    title: "Inteligencia Artificial",
-    desc: "Algoritmos entrenados con más de 2M partidos analizados para detectar valor real en cada mercado.",
-  },
-  {
-    icon: IconShield,
-    accent: C.bronze,
-    title: "Gestión de Riesgo",
-    desc: "Sistema de bankroll profesional. Protege tu capital y escala gradualmente tus ganancias.",
-  },
-  {
-    icon: IconChartBar,
-    accent: C.platinum,
-    title: "Estadísticas Avanzadas",
-    desc: "Dashboards en tiempo real con datos de rendimiento, historial y tendencias actualizadas al minuto.",
-  },
-  {
-    icon: IconBolt,
-    accent: C.goldBright,
-    title: "Combinadas Estratégicas",
-    desc: "Selecciones pre-armadas con cuotas aumentadas y control de riesgo para maximizar el retorno.",
-  },
-  {
-    icon: IconBell,
-    accent: C.goldDeep,
-    title: "Alertas en Tiempo Real",
-    desc: "Notificaciones instantáneas por Telegram y email cuando aparecen oportunidades con valor.",
-  },
-];
-
 const KUNFUPAY_BASE = "https://store.kunfupay.com/tipstergold-gsy9-mdnninaoocif/";
 
 const products = [
@@ -463,8 +368,48 @@ const products = [
   },
 ];
 
-// Plan destacado que se muestra en la sección Elite
+// Los dos grupos que el cliente quiere destacar, con sus beneficios.
+// Precios e IDs de pago salen de `products`, así no se duplican datos.
+const groupPlans = [
+  {
+    name: "Grupo VIP",
+    id: "6998730808b11193969c1602",
+    price: "136.836,73",
+    desc: "Pronósticos premium de fútbol con seguimiento diario y soporte prioritario.",
+    featured: false,
+    cta: "Acceder al VIP",
+    benefits: [
+      "Pronósticos premium todos los días",
+      "Fútbol de las principales ligas",
+      "Gestión de banca profesional",
+      "Alertas en tiempo real",
+      "Soporte prioritario",
+      "Acceso por Telegram",
+    ],
+  },
+  {
+    name: "Grupo Élite",
+    id: "699873e74287554b8104726d",
+    price: "195.481,04",
+    desc: "Acceso total a todos los deportes y a las estrategias privadas.",
+    featured: true,
+    cta: "Acceder al Élite",
+    benefits: [
+      "Todo lo del Grupo VIP incluido",
+      "Acceso total a todos los deportes",
+      "Tenis, NBA y MLB",
+      "Estrategias privadas",
+      "Combinadas exclusivas",
+      "Acompañamiento directo",
+    ],
+  },
+];
+
+// Plan destacado, usado por la seccion Elite y por el CTA final
 const ELITE_PRODUCT = products.find((p) => p.highlight) ?? products[0];
+
+// "Otros servicios": lo que no son los grupos VIP/Elite, que ya salen arriba
+const otherServices = products.filter((p) => !groupPlans.some((g) => g.id === p.id));
 
 const TELEGRAM_FREE = "https://t.me/Tgfutboltips";
 const TELEGRAM_CONTACT = "https://t.me/TipsterGold_1";
@@ -506,8 +451,8 @@ const heroMetrics = [
   },
 ];
 
-const navLinks = ["Inicio", "Gratis", "Elite", "Beneficios", "Resultados", "Productos"];
-const sectionIds = ["hero", "gratuito", "elite", "beneficios", "resultados", "planes"];
+const navLinks = ["Inicio", "Gratis", "Elite", "Grupos", "Resultados", "Productos"];
+const sectionIds = ["hero", "gratuito", "elite", "grupos", "resultados", "planes"];
 
 // ─── Marca (logo tipográfico reutilizable) ──────────────────────────────────
 function BrandName({ className = "", style }: { className?: string; style?: CSSProperties }) {
@@ -854,7 +799,6 @@ function SiteContent() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [selectedResult, setSelectedResult] = useState<(typeof results)[0] | null>(null);
-  const [activeTab, setActiveTab] = useState<"roi" | "precision">("roi");
   const [galleryPaused, setGalleryPaused] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
@@ -1026,7 +970,7 @@ function SiteContent() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => scrollTo("planes")}
+              onClick={() => scrollTo("grupos")}
               className="hidden sm:block px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
               style={{
                 background: GOLD_GRAD,
@@ -1094,7 +1038,7 @@ function SiteContent() {
 
                 <div className="mt-4 sm:hidden">
                   <button
-                    onClick={() => scrollTo("planes")}
+                    onClick={() => scrollTo("grupos")}
                     className="w-full py-3.5 rounded-xl font-bold text-base"
                     style={{ background: GOLD_GRAD, color: C.black, fontFamily: "Poppins" }}
                   >
@@ -1187,7 +1131,7 @@ function SiteContent() {
               <motion.button
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.96 }}
-                onClick={() => scrollTo("planes")}
+                onClick={() => scrollTo("grupos")}
                 className="px-6 py-3.5 rounded-xl text-sm font-bold whitespace-nowrap"
                 style={{
                   background: GOLD_GRAD,
@@ -1382,45 +1326,162 @@ function SiteContent() {
         </div>
       </section>
 
-      {/* ── TRUST / STATS ── */}
-      <section
-        className="sec-pad relative"
-        style={{ background: `linear-gradient(180deg, ${C.black} 0%, ${C.panel} 100%)` }}
-      >
-        <div className="wrap">
+
+      {/* ── PROFESSIONAL GALLERY ── */}
+      <section className="sec-pad overflow-hidden" style={{ background: C.black }}>
+        <div className="wrap mb-10">
           <Section>
-            <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
+            <motion.div variants={fadeUp} className="text-center mb-2">
               <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Resultados <span className="gradient-text">Comprobados</span>
+                Cumpliendo Sueños, <span className="gradient-text">Ayudándote a Ti</span>
               </h2>
               <p className="text-base" style={{ color: C.muted }}>
-                Números reales de nuestra comunidad activa
+                De estadio en estadio, viviendo el fútbol en primera fila
               </p>
             </motion.div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-              {[
-                { end: 89, suffix: "%", label: "Precisión Histórica" },
-                { end: 10000, suffix: "+", label: "Usuarios Activos" },
-                { end: 2847, suffix: "", label: "Partidos Analizados/mes" },
-                { end: 42, suffix: "%", label: "ROI Promedio Mensual" },
-              ].map((stat) => (
-                <motion.div
-                  key={stat.label}
-                  variants={scaleIn}
-                  className="card-hover rounded-2xl p-5 md:p-6 text-center"
-                  style={{
-                    background: `linear-gradient(160deg, ${hexToRgba(C.gold, 0.06)} 0%, rgba(15,15,15,0.95) 55%)`,
-                    border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
-                  }}
-                >
-                  <AnimatedStat end={stat.end} suffix={stat.suffix} label={stat.label} />
-                </motion.div>
-              ))}
-            </div>
           </Section>
         </div>
+
+        <div
+          className="relative overflow-hidden"
+          onMouseEnter={() => setGalleryPaused(true)}
+          onMouseLeave={() => setGalleryPaused(false)}
+          onTouchStart={() => setGalleryPaused(true)}
+          onTouchEnd={() => setGalleryPaused(false)}
+        >
+          <div
+            className="flex gap-4 scroll-left"
+            style={{
+              width: "max-content",
+              animationPlayState: galleryPaused ? "paused" : "running",
+              animationDuration: "70s",
+            }}
+          >
+            {[...professionalGallery, ...professionalGallery].map((photo, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setLightboxIndex(i % professionalGallery.length)}
+                className="relative rounded-2xl overflow-hidden flex-shrink-0 group text-left cursor-pointer w-[190px] h-[250px] md:w-[280px] md:h-[360px]"
+                style={{ border: `1px solid ${hexToRgba(C.gold, 0.16)}` }}
+              >
+                <img
+                  src={photo.img}
+                  alt={photo.caption}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.15) 45%, transparent 70%)",
+                  }}
+                />
+                <div
+                  className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ background: GOLD_GRAD, color: C.black }}
+                >
+                  🔍
+                </div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <p className="text-sm font-bold" style={{ fontFamily: "Poppins", color: C.ivory }}>
+                    {photo.caption}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Edge fades */}
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-12 md:w-28"
+            style={{ background: `linear-gradient(to right, ${C.black}, transparent)` }}
+          />
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-12 md:w-28"
+            style={{ background: `linear-gradient(to left, ${C.black}, transparent)` }}
+          />
+        </div>
       </section>
+
+      {/* Gallery lightbox modal */}
+      <AnimatePresence>
+        {lightboxIndex !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.94)", backdropFilter: "blur(8px)" }}
+            onClick={closeLightbox}
+          >
+            <button
+              className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 rounded-full flex items-center justify-center z-10"
+              style={{ background: hexToRgba(C.gold, 0.15), color: C.champagne }}
+              onClick={closeLightbox}
+            >
+              ✕
+            </button>
+
+            <button
+              className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-2xl z-10"
+              style={{ background: hexToRgba(C.gold, 0.15), color: C.champagne }}
+              onClick={(e) => {
+                e.stopPropagation();
+                prevPhoto();
+              }}
+            >
+              ‹
+            </button>
+            <button
+              className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-2xl z-10"
+              style={{ background: hexToRgba(C.gold, 0.15), color: C.champagne }}
+              onClick={(e) => {
+                e.stopPropagation();
+                nextPhoto();
+              }}
+            >
+              ›
+            </button>
+
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={lightboxIndex}
+                initial={{ opacity: 0, x: 80 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -80 }}
+                transition={{ duration: 0.3 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.6}
+                onDragEnd={(_, info) => {
+                  if (info.offset.x < -80) nextPhoto();
+                  else if (info.offset.x > 80) prevPhoto();
+                }}
+                className="relative max-w-3xl w-full rounded-3xl overflow-hidden"
+                style={{ background: C.panel, border: `1px solid ${hexToRgba(C.gold, 0.3)}` }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img
+                  src={professionalGallery[lightboxIndex].img}
+                  alt={professionalGallery[lightboxIndex].caption}
+                  className="w-full max-h-[70vh] object-contain bg-black"
+                  draggable={false}
+                />
+                <div className="p-5 flex items-center justify-between">
+                  <p className="text-base font-bold" style={{ fontFamily: "Poppins" }}>
+                    {professionalGallery[lightboxIndex].caption}
+                  </p>
+                  <span className="text-xs" style={{ color: C.muted }}>
+                    {lightboxIndex + 1} / {professionalGallery.length}
+                  </span>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── GRUPO GRATUITO (foto brayan3) ── */}
       <section id="gratuito" className="sec-pad" style={{ background: C.panel }}>
@@ -1691,212 +1752,6 @@ function SiteContent() {
         </div>
       </section>
 
-      {/* ── PROFESSIONAL GALLERY ── */}
-      <section className="sec-pad overflow-hidden" style={{ background: C.black }}>
-        <div className="wrap mb-10">
-          <Section>
-            <motion.div variants={fadeUp} className="text-center mb-2">
-              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Cumpliendo Sueños, <span className="gradient-text">Ayudándote a Ti</span>
-              </h2>
-              <p className="text-base" style={{ color: C.muted }}>
-                De estadio en estadio, viviendo el fútbol en primera fila
-              </p>
-            </motion.div>
-          </Section>
-        </div>
-
-        <div
-          className="relative overflow-hidden"
-          onMouseEnter={() => setGalleryPaused(true)}
-          onMouseLeave={() => setGalleryPaused(false)}
-          onTouchStart={() => setGalleryPaused(true)}
-          onTouchEnd={() => setGalleryPaused(false)}
-        >
-          <div
-            className="flex gap-4 scroll-left"
-            style={{
-              width: "max-content",
-              animationPlayState: galleryPaused ? "paused" : "running",
-              animationDuration: "70s",
-            }}
-          >
-            {[...professionalGallery, ...professionalGallery].map((photo, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setLightboxIndex(i % professionalGallery.length)}
-                className="relative rounded-2xl overflow-hidden flex-shrink-0 group text-left cursor-pointer w-[190px] h-[250px] md:w-[280px] md:h-[360px]"
-                style={{ border: `1px solid ${hexToRgba(C.gold, 0.16)}` }}
-              >
-                <img
-                  src={photo.img}
-                  alt={photo.caption}
-                  loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.15) 45%, transparent 70%)",
-                  }}
-                />
-                <div
-                  className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: GOLD_GRAD, color: C.black }}
-                >
-                  🔍
-                </div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <p className="text-sm font-bold" style={{ fontFamily: "Poppins", color: C.ivory }}>
-                    {photo.caption}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Edge fades */}
-          <div
-            className="pointer-events-none absolute inset-y-0 left-0 w-12 md:w-28"
-            style={{ background: `linear-gradient(to right, ${C.black}, transparent)` }}
-          />
-          <div
-            className="pointer-events-none absolute inset-y-0 right-0 w-12 md:w-28"
-            style={{ background: `linear-gradient(to left, ${C.black}, transparent)` }}
-          />
-        </div>
-      </section>
-
-      {/* Gallery lightbox modal */}
-      <AnimatePresence>
-        {lightboxIndex !== null && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-            style={{ background: "rgba(0,0,0,0.94)", backdropFilter: "blur(8px)" }}
-            onClick={closeLightbox}
-          >
-            <button
-              className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 rounded-full flex items-center justify-center z-10"
-              style={{ background: hexToRgba(C.gold, 0.15), color: C.champagne }}
-              onClick={closeLightbox}
-            >
-              ✕
-            </button>
-
-            <button
-              className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-2xl z-10"
-              style={{ background: hexToRgba(C.gold, 0.15), color: C.champagne }}
-              onClick={(e) => {
-                e.stopPropagation();
-                prevPhoto();
-              }}
-            >
-              ‹
-            </button>
-            <button
-              className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-2xl z-10"
-              style={{ background: hexToRgba(C.gold, 0.15), color: C.champagne }}
-              onClick={(e) => {
-                e.stopPropagation();
-                nextPhoto();
-              }}
-            >
-              ›
-            </button>
-
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={lightboxIndex}
-                initial={{ opacity: 0, x: 80 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -80 }}
-                transition={{ duration: 0.3 }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.6}
-                onDragEnd={(_, info) => {
-                  if (info.offset.x < -80) nextPhoto();
-                  else if (info.offset.x > 80) prevPhoto();
-                }}
-                className="relative max-w-3xl w-full rounded-3xl overflow-hidden"
-                style={{ background: C.panel, border: `1px solid ${hexToRgba(C.gold, 0.3)}` }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <img
-                  src={professionalGallery[lightboxIndex].img}
-                  alt={professionalGallery[lightboxIndex].caption}
-                  className="w-full max-h-[70vh] object-contain bg-black"
-                  draggable={false}
-                />
-                <div className="p-5 flex items-center justify-between">
-                  <p className="text-base font-bold" style={{ fontFamily: "Poppins" }}>
-                    {professionalGallery[lightboxIndex].caption}
-                  </p>
-                  <span className="text-xs" style={{ color: C.muted }}>
-                    {lightboxIndex + 1} / {professionalGallery.length}
-                  </span>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── BENEFITS ── */}
-      <section id="beneficios" className="sec-pad" style={{ background: C.panel }}>
-        <div className="wrap">
-          <Section>
-            <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
-              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Todo lo que Incluye tu <span className="gradient-text">Membresía</span>
-              </h2>
-              <p style={{ color: C.muted }}>
-                Herramientas profesionales para tomar decisiones basadas en datos
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-              {benefits.map((b) => (
-                <motion.div
-                  key={b.title}
-                  variants={fadeUp}
-                  className="card-hover rounded-2xl p-4 md:p-6"
-                  style={{
-                    background: `linear-gradient(160deg, ${hexToRgba(b.accent, 0.09)} 0%, rgba(10,10,10,0.95) 48%)`,
-                    border: `1px solid ${hexToRgba(b.accent, 0.22)}`,
-                  }}
-                >
-                  <div
-                    className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-3 md:mb-4"
-                    style={{
-                      background: hexToRgba(b.accent, 0.13),
-                      color: b.accent,
-                      border: `1px solid ${hexToRgba(b.accent, 0.25)}`,
-                    }}
-                  >
-                    <b.icon size={18} />
-                  </div>
-                  <h3
-                    className="text-sm md:text-lg font-bold mb-1.5 md:mb-2"
-                    style={{ fontFamily: "Poppins", color: C.ivory }}
-                  >
-                    {b.title}
-                  </h3>
-                  <p className="text-xs md:text-sm leading-relaxed" style={{ color: C.muted }}>
-                    {b.desc}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </Section>
-        </div>
-      </section>
-
       {/* ── VIDEO BANNER ── */}
       <section className="relative sec-pad overflow-hidden">
         <video
@@ -1922,7 +1777,7 @@ function SiteContent() {
             background: `radial-gradient(ellipse 60% 60% at 50% 50%, ${hexToRgba(C.gold, 0.12)} 0%, transparent 70%)`,
           }}
         />
-        <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-6 text-center">
+        <div className="relative z-10 wrap text-center">
           <Section>
             <motion.div
               variants={fadeUp}
@@ -1940,104 +1795,49 @@ function SiteContent() {
             </motion.h2>
             <motion.p
               variants={fadeUp}
-              className="fs-lead"
+              className="fs-lead mb-10"
               style={{ color: C.muted, maxWidth: "560px", margin: "0 auto" }}
             >
               Analizamos las mejores ligas del mundo para traerte predicciones con datos reales,
               estés donde estés.
             </motion.p>
-          </Section>
-        </div>
-      </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section className="sec-pad" style={{ background: C.panel }}>
-        <div className="max-w-4xl mx-auto px-4 md:px-6">
-          <Section>
-            <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
-              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Cómo <span className="gradient-text">Funciona</span>
-              </h2>
-              <p style={{ color: C.muted }}>Tres pasos para comenzar a ganar con estrategia</p>
-            </motion.div>
-
-            <div className="relative">
-              {/* Connecting line (desktop) */}
-              <div
-                className="hidden md:block absolute top-10 left-16 right-16 h-0.5"
-                style={{
-                  background: `linear-gradient(to right, ${hexToRgba(C.gold, 0)}, ${C.gold}, ${C.goldBright}, ${C.gold}, ${hexToRgba(C.gold, 0)})`,
-                }}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {[
-                  {
-                    step: "01",
-                    title: "Te Registras",
-                    desc: "Elige tu plan y accede en minutos. Sin complicaciones, sin contratos largos.",
-                    icon: "📋",
-                  },
-                  {
-                    step: "02",
-                    title: "Recibes Acceso",
-                    desc: "Accedes al dashboard, Telegram VIP y todas las herramientas de análisis inmediatamente.",
-                    icon: "🔓",
-                  },
-                  {
-                    step: "03",
-                    title: "Aplicas la Estrategia",
-                    desc: "Sigues las predicciones con gestión de bankroll y maximizas tus resultados cada día.",
-                    icon: "🚀",
-                  },
-                ].map((step, i) => (
-                  <motion.div
-                    key={step.step}
-                    variants={fadeUp}
-                    className="relative flex flex-col items-center text-center"
-                    style={{ transitionDelay: `${i * 0.15}s` }}
-                  >
-                    <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl mb-5 relative z-10"
-                      style={{
-                        background: `linear-gradient(150deg, ${hexToRgba(C.gold, 0.16)}, rgba(10,10,10,0.98))`,
-                        border: `1px solid ${hexToRgba(C.gold, 0.38)}`,
-                        boxShadow: `0 0 34px ${hexToRgba(C.gold, 0.14)}`,
-                      }}
-                    >
-                      {step.icon}
-                    </motion.div>
-                    <div
-                      className="text-xs font-bold mb-1"
-                      style={{ color: C.gold, fontFamily: "Inter", letterSpacing: "0.14em" }}
-                    >
-                      PASO {step.step}
-                    </div>
-                    <h3 className="text-xl font-bold mb-2" style={{ fontFamily: "Poppins" }}>
-                      {step.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: C.muted }}>
-                      {step.desc}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
+            {/* Resultados comprobados, sobre el vídeo del estadio */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 max-w-5xl mx-auto">
+              {[
+                { end: 89, suffix: "%", label: "Precisión Histórica" },
+                { end: 10000, suffix: "+", label: "Usuarios Activos" },
+                { end: 2847, suffix: "", label: "Partidos Analizados/mes" },
+                { end: 42, suffix: "%", label: "ROI Promedio Mensual" },
+              ].map((stat) => (
+                <motion.div
+                  key={stat.label}
+                  variants={scaleIn}
+                  className="card-hover rounded-2xl p-4 md:p-6 text-center backdrop-blur-md"
+                  style={{
+                    background: `linear-gradient(160deg, ${hexToRgba(C.gold, 0.08)} 0%, rgba(8,8,8,0.72) 55%)`,
+                    border: `1px solid ${hexToRgba(C.gold, 0.22)}`,
+                  }}
+                >
+                  <AnimatedStat end={stat.end} suffix={stat.suffix} label={stat.label} />
+                </motion.div>
+              ))}
             </div>
           </Section>
         </div>
       </section>
 
       {/* ── VIDEOS ── */}
-      <section className="sec-pad" style={{ background: C.black }}>
+      <section id="videos" className="sec-pad" style={{ background: C.black }}>
         <div className="wrap">
           <Section>
             <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
               <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Contenido en <span className="gradient-text">Video</span>
+                Visita mi canal y haz tus{" "}
+                <span className="gradient-text">propios análisis</span>
               </h2>
               <p style={{ color: C.muted }}>
-                Análisis y pronósticos directo desde nuestro canal de YouTube
+                Aprende el método paso a paso con los vídeos de mi canal de YouTube
               </p>
             </motion.div>
 
@@ -2270,115 +2070,134 @@ function SiteContent() {
         )}
       </AnimatePresence>
 
-      {/* ── STATS DASHBOARD ── */}
-      <section id="estadisticas" className="sec-pad" style={{ background: C.black }}>
-        <div className="wrap">
+      {/* ── GRUPOS: VIP Y ÉLITE ── */}
+      <section id="grupos" className="sec-pad relative overflow-hidden" style={{ background: C.black }}>
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 52% 46% at 50% 40%, ${hexToRgba(C.gold, 0.1)} 0%, ${hexToRgba(C.gold, 0.04)} 38%, transparent 72%)`,
+          }}
+        />
+
+        <div className="relative z-10 wrap">
           <Section>
-            <motion.div variants={fadeUp} className="text-center mb-10">
+            {/* Foto de Brayan presidiendo la elección (la misma del hero) */}
+            <motion.div variants={scaleIn} className="relative flex justify-center mb-2">
+              <img
+                src={PHOTO_HERO}
+                alt="Brayan · TipsterGold"
+                className="relative w-[190px] sm:w-[230px] md:w-[280px] object-contain"
+                style={{
+                  maskImage:
+                    "linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%), linear-gradient(to bottom, #000 0%, #000 66%, transparent 99%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%), linear-gradient(to bottom, #000 0%, #000 66%, transparent 99%)",
+                  maskComposite: "intersect",
+                  WebkitMaskComposite: "source-in",
+                  filter: `drop-shadow(0 20px 46px rgba(0,0,0,0.8)) drop-shadow(0 0 28px ${hexToRgba(C.gold, 0.16)})`,
+                }}
+              />
+            </motion.div>
+
+            <motion.div variants={fadeUp} className="text-center mb-8 md:mb-12">
+              <div
+                className="text-xs font-bold tracking-[0.25em] mb-3"
+                style={{ color: C.gold, fontFamily: "Inter" }}
+              >
+                ¿LISTO PARA EL SIGUIENTE NIVEL?
+              </div>
               <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Dashboard de <span className="gradient-text">Estadísticas</span>
+                ¿LISTO PARA <span className="gradient-text">FORMAR PARTE?</span>
               </h2>
-              <p style={{ color: C.muted }}>Rendimiento verificado mes a mes</p>
+              <p className="fs-body" style={{ color: C.muted }}>
+                Elige por dónde empezar. Puedes cambiar de plan cuando quieras.
+              </p>
             </motion.div>
 
-            {/* Tab selector */}
-            <motion.div variants={fadeUp} className="flex justify-center gap-3 mb-8">
-              {(["roi", "precision"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className="px-5 py-2 rounded-xl text-sm font-semibold transition-all"
+            <div className="grid md:grid-cols-2 gap-5 max-w-4xl mx-auto">
+              {groupPlans.map((plan) => (
+                <motion.div
+                  key={plan.name}
+                  variants={fadeUp}
+                  className="rounded-3xl p-6 md:p-8 flex flex-col relative overflow-hidden"
                   style={{
-                    background: activeTab === tab ? GOLD_GRAD : hexToRgba(C.gold, 0.07),
-                    color: activeTab === tab ? C.black : C.muted,
-                    border:
-                      activeTab === tab ? "none" : `1px solid ${hexToRgba(C.gold, 0.18)}`,
-                    fontFamily: "Inter",
+                    background: plan.featured
+                      ? `linear-gradient(160deg, ${hexToRgba(C.gold, 0.13)} 0%, rgba(10,10,10,0.97) 58%)`
+                      : "rgba(13,13,13,0.94)",
+                    border: `1px solid ${hexToRgba(C.gold, plan.featured ? 0.45 : 0.16)}`,
+                    boxShadow: plan.featured ? `0 0 46px ${hexToRgba(C.gold, 0.14)}` : "none",
                   }}
                 >
-                  {tab === "roi" ? "ROI Mensual %" : "Precisión %"}
-                </button>
-              ))}
-            </motion.div>
+                  {plan.featured && (
+                    <div
+                      className="absolute top-0 right-0 px-3.5 py-1.5 text-[10px] font-black tracking-[0.16em] uppercase rounded-bl-2xl"
+                      style={{ background: GOLD_GRAD, color: C.black, fontFamily: "Poppins" }}
+                    >
+                      Más elegido
+                    </div>
+                  )}
 
-            <motion.div
-              variants={scaleIn}
-              className="rounded-3xl p-4 md:p-8"
-              style={{
-                background: `linear-gradient(160deg, ${hexToRgba(C.gold, 0.05)} 0%, rgba(15,15,15,0.96) 55%)`,
-                border: `1px solid ${hexToRgba(C.gold, 0.18)}`,
-              }}
-            >
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={monthlyData}>
-                  <defs>
-                    <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={C.goldBright} stopOpacity={0.42} />
-                      <stop offset="95%" stopColor={C.gold} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(212,175,55,0.08)" />
-                  <XAxis
-                    dataKey="mes"
-                    tick={{ fill: C.muted, fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fill: C.muted, fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    cursor={{ stroke: hexToRgba(C.gold, 0.3) }}
-                    contentStyle={{
-                      background: "#12100a",
-                      border: `1px solid ${hexToRgba(C.gold, 0.35)}`,
-                      borderRadius: "12px",
-                      color: C.ivory,
-                    }}
-                    formatter={(v) => [`${v}%`, activeTab === "roi" ? "ROI" : "Precisión"]}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey={activeTab}
-                    stroke={C.goldBright}
-                    strokeWidth={2.5}
-                    fill="url(#goldGrad)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </motion.div>
-
-            {/* Sport breakdown */}
-            <motion.div variants={fadeUp} className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { sport: "⚽ Fútbol", coverage: "95%" },
-                { sport: "🏀 Basketball", coverage: "80%" },
-                { sport: "🎾 Tenis", coverage: "72%" },
-                { sport: "🏈 NFL", coverage: "68%" },
-              ].map((s) => (
-                <div
-                  key={s.sport}
-                  className="card-hover rounded-2xl p-4 text-center"
-                  style={{
-                    background: "rgba(15,15,15,0.95)",
-                    border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
-                  }}
-                >
-                  <div className="text-xl mb-1">{s.sport.split(" ")[0]}</div>
-                  <div className="text-sm font-semibold" style={{ color: C.muted }}>
-                    {s.sport.split(" ").slice(1).join(" ")}
-                  </div>
-                  <div
-                    className="text-lg font-black mt-1 gradient-text"
-                    style={{ fontFamily: "Poppins" }}
+                  <h3
+                    className="text-2xl font-black mb-2 pr-24"
+                    style={{ fontFamily: "Poppins", color: plan.featured ? undefined : C.ivory }}
                   >
-                    {s.coverage}
+                    {plan.featured ? <span className="gradient-text">{plan.name}</span> : plan.name}
+                  </h3>
+                  <p className="fs-body mb-6" style={{ color: C.muted }}>
+                    {plan.desc}
+                  </p>
+
+                  <ul className="space-y-3 mb-7">
+                    {plan.benefits.map((b) => (
+                      <li key={b} className="flex items-start gap-2.5 text-sm" style={{ color: C.ivory }}>
+                        <span
+                          className="mt-0.5 flex-shrink-0"
+                          style={{ color: plan.featured ? C.goldBright : C.gold }}
+                        >
+                          <IconCheck size={15} />
+                        </span>
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="mt-auto">
+                    <div className="flex items-end gap-2 mb-4">
+                      <span
+                        className="text-3xl font-black gradient-text leading-none"
+                        style={{ fontFamily: "Poppins" }}
+                      >
+                        ${plan.price}
+                      </span>
+                      <span className="text-xs pb-1" style={{ color: C.muted }}>
+                        COP
+                      </span>
+                    </div>
+                    <motion.a
+                      href={`${KUNFUPAY_BASE}${plan.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="block w-full text-center py-3.5 rounded-xl font-black text-sm tracking-wide"
+                      style={{
+                        background: plan.featured ? GOLD_GRAD : "transparent",
+                        color: plan.featured ? C.black : C.goldBright,
+                        border: plan.featured ? "none" : `1px solid ${hexToRgba(C.gold, 0.4)}`,
+                        fontFamily: "Poppins",
+                        boxShadow: plan.featured ? `0 10px 30px ${hexToRgba(C.gold, 0.28)}` : "none",
+                      }}
+                    >
+                      {plan.cta}
+                    </motion.a>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </motion.div>
+            </div>
+
+            <motion.p variants={fadeUp} className="text-center text-xs mt-8" style={{ color: C.dim }}>
+              Pagos procesados de forma segura por KunFuPay · Sin permanencia
+            </motion.p>
           </Section>
         </div>
       </section>
@@ -2460,289 +2279,22 @@ function SiteContent() {
         </div>
       </section>
 
-      {/* ── FINAL CTA ── */}
-      <section
-        className="relative sec-pad text-center overflow-hidden"
-        style={{ background: C.black }}
-      >
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `radial-gradient(ellipse 60% 60% at 50% 50%, ${hexToRgba(C.gold, 0.13)} 0%, transparent 70%)`,
-          }}
-        />
-        {/* Balón decorativo */}
-        <div className="absolute -left-10 top-10 opacity-[0.07] hidden md:block">
-          <img src="/balon.png" alt="" aria-hidden="true" className="w-64 h-64 object-contain" />
-        </div>
-        <div className="absolute -right-10 bottom-10 opacity-[0.07] hidden md:block">
-          <img src="/balon.png" alt="" aria-hidden="true" className="w-72 h-72 object-contain" />
-        </div>
-
-        <div className="relative z-10 wrap">
-          <Section>
-            {/* Foto de Brayan presidiendo el cierre */}
-            <motion.div variants={scaleIn} className="relative flex justify-center mb-[-10px]">
-              <div
-                className="absolute inset-x-0 -top-10 h-[26rem] pointer-events-none"
-                style={{
-                  background: `radial-gradient(ellipse 26% 42% at 50% 52%, ${hexToRgba(C.gold, 0.24)} 0%, ${hexToRgba(C.gold, 0.09)} 38%, transparent 68%)`,
-                  filter: "blur(34px)",
-                }}
-              />
-              <img
-                src={PHOTO_HERO}
-                alt="Brayan · TipsterGold"
-                className="relative w-[220px] sm:w-[280px] md:w-[340px] object-contain"
-                style={{
-                  maskImage:
-                    "linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%), linear-gradient(to bottom, #000 0%, #000 68%, transparent 99%)",
-                  WebkitMaskImage:
-                    "linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%), linear-gradient(to bottom, #000 0%, #000 68%, transparent 99%)",
-                  maskComposite: "intersect",
-                  WebkitMaskComposite: "source-in",
-                  filter: `drop-shadow(0 22px 50px rgba(0,0,0,0.8)) drop-shadow(0 0 30px ${hexToRgba(C.gold, 0.16)})`,
-                }}
-              />
-            </motion.div>
-
-            <motion.div
-              variants={fadeUp}
-              className="text-xs font-bold tracking-[0.25em] mb-4"
-              style={{ color: C.gold, fontFamily: "Inter" }}
-            >
-              ¿LISTO PARA EL SIGUIENTE NIVEL?
-            </motion.div>
-            <motion.h2
-              variants={fadeUp}
-              className="fs-hero font-black mb-4"
-              style={{ fontFamily: "Poppins" }}
-            >
-              ¿LISTO PARA <span className="gradient-text">FORMAR PARTE?</span>
-            </motion.h2>
-            <motion.p
-              variants={fadeUp}
-              className="fs-lead mb-10"
-              style={{ color: C.muted }}
-            >
-              Elige por dónde empezar. Puedes mejorar tu plan cuando quieras.
-            </motion.p>
-
-            {/* Tres tarjetas de acceso */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 max-w-5xl mx-auto text-left">
-              {[
-                {
-                  icon: IconUsers,
-                  title: "Canal Gratuito",
-                  featured: false,
-                  desc: "Empieza sin costo y sigue los análisis diarios en Telegram.",
-                  cta: "Entrar ahora",
-                  href: TELEGRAM_FREE,
-                },
-                {
-                  icon: IconBolt,
-                  title: "Membresía Elite",
-                  featured: true,
-                  desc: "Entradas exclusivas, alertas en tiempo real y acompañamiento premium.",
-                  cta: "Acceder al Elite",
-                  href: `${KUNFUPAY_BASE}${ELITE_PRODUCT.id}`,
-                },
-                {
-                  icon: IconBell,
-                  title: "Soporte",
-                  featured: false,
-                  desc: "¿Dudas sobre grupos, pagos o accesos? Habla con el equipo.",
-                  cta: "Hablar ahora",
-                  href: TELEGRAM_CONTACT,
-                },
-              ].map((card) => (
-                <motion.a
-                  key={card.title}
-                  variants={fadeUp}
-                  href={card.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ y: -6 }}
-                  className="rounded-2xl p-6 md:p-7 flex flex-col items-center text-center"
-                  style={{
-                    background: card.featured
-                      ? `linear-gradient(160deg, ${hexToRgba(C.gold, 0.14)} 0%, rgba(10,10,10,0.97) 60%)`
-                      : "rgba(13,13,13,0.94)",
-                    border: `1px solid ${hexToRgba(C.gold, card.featured ? 0.5 : 0.16)}`,
-                    boxShadow: card.featured ? `0 0 44px ${hexToRgba(C.gold, 0.16)}` : "none",
-                    transition: "box-shadow 0.3s ease, border-color 0.3s ease",
-                  }}
-                >
-                  <span
-                    className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
-                    style={{
-                      background: hexToRgba(C.gold, card.featured ? 0.18 : 0.08),
-                      border: `1px solid ${hexToRgba(C.gold, card.featured ? 0.5 : 0.24)}`,
-                      color: card.featured ? C.goldBright : C.gold,
-                    }}
-                  >
-                    <card.icon size={20} />
-                  </span>
-                  <h3
-                    className={`text-lg font-black mb-2 ${card.featured ? "gradient-text" : ""}`}
-                    style={{ fontFamily: "Poppins", color: card.featured ? undefined : C.ivory }}
-                  >
-                    {card.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed mb-6" style={{ color: C.muted }}>
-                    {card.desc}
-                  </p>
-                  <span
-                    className="mt-auto w-full py-3 rounded-xl font-bold text-sm"
-                    style={{
-                      background: card.featured ? GOLD_GRAD : "transparent",
-                      color: card.featured ? C.black : C.champagne,
-                      border: card.featured ? "none" : `1px solid ${hexToRgba(C.gold, 0.32)}`,
-                      fontFamily: "Poppins",
-                    }}
-                  >
-                    {card.cta}
-                  </span>
-                </motion.a>
-              ))}
-            </div>
-
-            <motion.p variants={fadeUp} className="mt-8 text-sm" style={{ color: C.dim }}>
-              Sin permanencia · Cancela cuando quieras
-            </motion.p>
-          </Section>
-        </div>
-      </section>
-
-      {/* ── SOPORTE (foto brayan3) ── */}
-      <section className="sec-pad" style={{ background: C.black }}>
-        <div className="wrap">
-          <Section>
-            <motion.div
-              variants={scaleIn}
-              className="rounded-3xl overflow-hidden grid md:grid-cols-2"
-              style={{
-                background: `linear-gradient(210deg, ${hexToRgba(C.gold, 0.08)} 0%, rgba(15,15,15,0.97) 55%)`,
-                border: `1px solid ${hexToRgba(C.gold, 0.2)}`,
-                boxShadow: "0 30px 70px rgba(0,0,0,0.5)",
-              }}
-            >
-              {/* Texto */}
-              <div className="p-6 md:p-12 flex flex-col justify-center">
-                <div
-                  className="text-xs font-bold tracking-[0.22em] uppercase mb-3"
-                  style={{ color: C.gold, fontFamily: "Inter" }}
-                >
-                  Estamos contigo
-                </div>
-                <h2
-                  className="fs-h2 font-black mb-4 leading-tight"
-                  style={{ fontFamily: "Poppins" }}
-                >
-                  Habla con el <span className="gradient-text">soporte</span>
-                </h2>
-                <p className="fs-body mb-6" style={{ color: C.muted }}>
-                  Dudas sobre los grupos, pagos o accesos: el equipo responde todos los días. Nadie
-                  entra solo a la comunidad.
-                </p>
-
-                <div className="grid sm:grid-cols-2 gap-3 mb-8">
-                  {[
-                    "Atención rápida",
-                    "Soporte cercano",
-                    "Resolución de dudas",
-                    "Acompañamiento continuo",
-                  ].map((item) => (
-                    <div
-                      key={item}
-                      className="flex items-center gap-2.5 text-sm rounded-xl px-3 py-2.5"
-                      style={{
-                        color: C.ivory,
-                        background: hexToRgba(C.gold, 0.05),
-                        border: `1px solid ${hexToRgba(C.gold, 0.14)}`,
-                      }}
-                    >
-                      <span style={{ color: C.gold }}>
-                        <IconCheck size={14} />
-                      </span>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-
-                <motion.a
-                  href={TELEGRAM_CONTACT}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.96 }}
-                  className="self-start px-6 py-3.5 rounded-xl font-bold text-sm inline-flex items-center gap-2"
-                  style={{
-                    background: GOLD_GRAD,
-                    color: C.black,
-                    fontFamily: "Poppins",
-                    boxShadow: `0 10px 30px ${hexToRgba(C.gold, 0.25)}`,
-                  }}
-                >
-                  <IconTelegram size={15} />
-                  Hablar con soporte
-                </motion.a>
-              </div>
-
-              {/* Panel decorativo */}
-              <div className="relative min-h-[220px] md:min-h-[420px] hidden md:block overflow-hidden">
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: `radial-gradient(circle at 60% 45%, ${hexToRgba(C.gold, 0.16)} 0%, transparent 62%)`,
-                  }}
-                />
-                <img
-                  src="/balon.png"
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute right-[-40px] top-1/2 -translate-y-1/2 w-64 h-64 object-contain opacity-25 float-slow"
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div
-                    className="text-center px-8 py-6 rounded-2xl backdrop-blur-sm"
-                    style={{
-                      background: "rgba(8,8,8,0.55)",
-                      border: `1px solid ${hexToRgba(C.gold, 0.22)}`,
-                    }}
-                  >
-                    <div
-                      className="text-4xl font-black gradient-text"
-                      style={{ fontFamily: "Poppins" }}
-                    >
-                      24/7
-                    </div>
-                    <div className="text-xs mt-1 tracking-widest uppercase" style={{ color: C.muted }}>
-                      Comunidad activa
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </Section>
-        </div>
-      </section>
-
       {/* ── PRODUCTOS ── */}
       <section id="planes" className="sec-pad" style={{ background: C.panel }}>
         <div className="max-w-3xl mx-auto px-4 md:px-6">
           <Section>
             <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
               <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Nuestros <span className="gradient-text">Productos</span>
+                Otros <span className="gradient-text">Servicios</span>
               </h2>
               <p style={{ color: C.muted }}>
-                Elige el canal o membresía que se ajuste a ti. Pago seguro, acceso inmediato.
+                Canales por deporte, aparte de los grupos VIP y Élite. Pago seguro, acceso
+                inmediato.
               </p>
             </motion.div>
 
             <div className="space-y-4">
-              {products.map((product) => (
+              {otherServices.map((product) => (
                 <motion.div
                   key={product.id}
                   variants={fadeUp}
