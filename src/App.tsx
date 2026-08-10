@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent, type CSSProperties } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   XAxis,
@@ -9,6 +9,26 @@ import {
   Area,
   AreaChart,
 } from "recharts";
+
+// ─── Paleta: negro & dorado (+ champán, bronce, platino, marfil) ─────────────
+const C = {
+  black: "#080808",
+  panel: "#0f0f0f",
+  panel2: "#15120c",
+  gold: "#d4af37",
+  goldBright: "#f6d66b",
+  goldDeep: "#9a7b1f",
+  champagne: "#ead9a6",
+  bronze: "#b87333",
+  platinum: "#c9cdd4",
+  ivory: "#f3eee3",
+  muted: "#a29c90",
+  dim: "#6b665d",
+  win: "#3dd68c",
+  telegram: "#229ed9",
+} as const;
+
+const GOLD_GRAD = "linear-gradient(135deg, #9a7b1f 0%, #f6d66b 45%, #d4af37 100%)";
 
 // ─── Utils ──────────────────────────────────────────────────────────────────
 function hexToRgba(hex: string, alpha: number) {
@@ -46,6 +66,38 @@ function Section({ children, className = "" }: { children: React.ReactNode; clas
     >
       {children}
     </motion.div>
+  );
+}
+
+// ─── Imagen con respaldo ──────────────────────────────────────────────────────
+// Las fotos brayan2/brayan3 se muestran en cuanto el cliente las suba a /public.
+// Mientras tanto cae a una foto de la galería para que nada quede roto.
+function PhotoWithFallback({
+  src,
+  fallback,
+  alt,
+  className,
+  style,
+}: {
+  src: string;
+  fallback: string;
+  alt: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const [current, setCurrent] = useState(src);
+  useEffect(() => setCurrent(src), [src]);
+  return (
+    <img
+      src={current}
+      alt={alt}
+      className={className}
+      style={style}
+      loading="lazy"
+      onError={() => {
+        if (current !== fallback) setCurrent(fallback);
+      }}
+    />
   );
 }
 
@@ -90,12 +142,15 @@ function AnimatedStat({
     decimals > 0 ? value.toFixed(decimals) : Math.round(value).toLocaleString("en-US");
   return (
     <motion.div ref={ref} variants={fadeUp} className="text-center">
-      <div className="text-3xl md:text-4xl font-extrabold" style={{ fontFamily: "Poppins, sans-serif", color: "#00ff66" }}>
+      <div
+        className="text-3xl md:text-4xl font-extrabold gradient-text"
+        style={{ fontFamily: "Poppins, sans-serif" }}
+      >
         {prefix}
         {display}
         {suffix}
       </div>
-      <div className="text-sm mt-1" style={{ color: "#b3b3b3" }}>
+      <div className="text-sm mt-1" style={{ color: C.muted }}>
         {label}
       </div>
     </motion.div>
@@ -104,7 +159,13 @@ function AnimatedStat({
 
 // ─── Benefit icons ──────────────────────────────────────────────────────────
 type IconProps = { size?: number };
-const iconBase = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+const iconBase = {
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.8,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+};
 
 function IconTarget({ size = 22 }: IconProps) {
   return (
@@ -151,6 +212,38 @@ function IconBell({ size = 22 }: IconProps) {
     <svg width={size} height={size} viewBox="0 0 24 24" {...iconBase}>
       <path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 5.5 2 6.5H4c.5-1 2-2.5 2-6.5Z" />
       <path d="M10 20a2 2 0 0 0 4 0" />
+    </svg>
+  );
+}
+function IconCheck({ size = 16 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...iconBase} strokeWidth={2.4}>
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+}
+function IconUsers({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...iconBase}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+function IconInstagram({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...iconBase}>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+function IconTelegram({ size = 18 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M23.91 3.79L20.3 20.84c-.25 1.21-.98 1.5-2 .94l-5.5-4.07-2.66 2.57c-.3.3-.55.56-1.12.56l.4-5.63 10.24-9.26c.44-.4-.1-.62-.68-.22L7.62 13.67l-5.44-1.7c-1.18-.37-1.2-1.18.26-1.75L22.4 2.09c.99-.36 1.85.24 1.51 1.7z" />
     </svg>
   );
 }
@@ -247,20 +340,19 @@ const professionalGallery = [
   { img: "/gallery/gallery-16.png", caption: "Pasión por el fútbol" },
 ];
 
+// Retratos del cliente (una foto distinta por sección, siempre con el rostro visible)
+const PHOTO_HERO = "/Brayan.png";
+const PHOTO_FREE = { src: "/brayan3.png", fallback: "/Brayan.png" };
+const PHOTO_ELITE = { src: "/brayan2.png", fallback: "/Brayan.png" };
+
 const musicTracks = [
   { src: "/track-uefa-anthem.mp3", title: "UEFA Champions League Anthem" },
   { src: "/track-mix-mundial.mp3", title: "Mix Mundial Fútbol 2022" },
 ];
 
 const featuredVideos = [
-  {
-    id: "FcNq4P1Ywjs",
-    title: "Cómo ganar apuestas aplicando stake",
-  },
-  {
-    id: "2c0K4QLyYxg",
-    title: "Cómo emprender e invertir",
-  },
+  { id: "FcNq4P1Ywjs", title: "Cómo ganar apuestas aplicando stake" },
+  { id: "2c0K4QLyYxg", title: "Cómo emprender e invertir" },
   {
     id: "q9zjH4dluw4",
     title: "Argentina vs España · Análisis completo de la final del Mundial 2026",
@@ -295,37 +387,37 @@ const results = [
 const benefits = [
   {
     icon: IconTarget,
-    accent: "#00ff66",
+    accent: C.gold,
     title: "Predicciones Exclusivas",
     desc: "Accede a análisis diarios de más de 20 ligas globales con probabilidades calculadas por nuestros expertos.",
   },
   {
     icon: IconCpu,
-    accent: "#22d3ee",
+    accent: C.champagne,
     title: "Inteligencia Artificial",
     desc: "Algoritmos entrenados con más de 2M partidos analizados para detectar valor real en cada mercado.",
   },
   {
     icon: IconShield,
-    accent: "#fbbf24",
+    accent: C.bronze,
     title: "Gestión de Riesgo",
     desc: "Sistema de bankroll profesional. Protege tu capital y escala gradualmente tus ganancias.",
   },
   {
     icon: IconChartBar,
-    accent: "#60a5fa",
+    accent: C.platinum,
     title: "Estadísticas Avanzadas",
     desc: "Dashboards en tiempo real con datos de rendimiento, historial y tendencias actualizadas al minuto.",
   },
   {
     icon: IconBolt,
-    accent: "#fb923c",
+    accent: C.goldBright,
     title: "Combinadas Estratégicas",
     desc: "Selecciones pre-armadas con cuotas aumentadas y control de riesgo para maximizar el retorno.",
   },
   {
     icon: IconBell,
-    accent: "#c084fc",
+    accent: C.goldDeep,
     title: "Alertas en Tiempo Real",
     desc: "Notificaciones instantáneas por Telegram y email cuando aparecen oportunidades con valor.",
   },
@@ -371,8 +463,286 @@ const products = [
   },
 ];
 
-const navLinks = ["Inicio", "Beneficios", "Resultados", "Estadísticas", "Testimonios", "Productos"];
-const sectionIds = ["hero", "beneficios", "resultados", "estadisticas", "testimonios", "planes"];
+// Plan destacado que se muestra en la sección Elite
+const ELITE_PRODUCT = products.find((p) => p.highlight) ?? products[0];
+
+const TELEGRAM_FREE = "https://t.me/Tgfutboltips";
+const TELEGRAM_CONTACT = "https://t.me/TipsterGold_1";
+
+// Métricas del hero. En escritorio flotan alrededor de la foto (posición en
+// left/right, nunca en transform); en móvil se listan quietas debajo.
+const heroMetrics = [
+  {
+    icon: IconTarget,
+    value: "89%",
+    label: "Precisión histórica",
+    pos: "top-[6%] left-[-16%]",
+    delay: 0.8,
+    floatDelay: "0s",
+  },
+  {
+    icon: IconInstagram,
+    value: "+19.000",
+    label: "Seguidores en IG",
+    pos: "top-[30%] right-[-14%]",
+    delay: 0.95,
+    floatDelay: "-1.4s",
+  },
+  {
+    icon: IconChartBar,
+    value: "+42%",
+    label: "ROI mensual",
+    pos: "top-[58%] left-[-16%]",
+    delay: 1.1,
+    floatDelay: "-2.7s",
+  },
+  {
+    icon: IconUsers,
+    value: "+10.000",
+    label: "Usuarios activos",
+    pos: "top-[72%] right-[-12%]",
+    delay: 1.25,
+    floatDelay: "-4s",
+  },
+];
+
+const navLinks = ["Inicio", "Gratis", "Elite", "Beneficios", "Resultados", "Productos"];
+const sectionIds = ["hero", "gratuito", "elite", "beneficios", "resultados", "planes"];
+
+// ─── Marca (logo tipográfico reutilizable) ──────────────────────────────────
+function BrandName({ className = "", style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <span className={className} style={{ fontFamily: "Poppins", ...style }}>
+      Tipster<span className="gradient-text">Gold</span>
+    </span>
+  );
+}
+
+// ─── Ambiente dorado detrás del retrato ─────────────────────────────────────
+// Nada de `mix-blend-mode` ni de blur sobre la capa de color: el navegador
+// rasteriza esa combinación en un búfer rectangular y deja ver la caja. Aquí
+// el volumen se construye solo con degradados de parada larga, más bokeh y
+// polvo en suspensión enmascarados, así el resplandor muere en la oscuridad.
+function HeroAmbience() {
+  // Focos desenfocados: posición, tamaño (%) y opacidad
+  const bokeh = [
+    { top: "14%", left: "6%", size: 22, o: 0.1, blur: 14 },
+    { top: "30%", left: "82%", size: 15, o: 0.085, blur: 10 },
+    { top: "58%", left: "-4%", size: 27, o: 0.07, blur: 18 },
+    { top: "70%", left: "76%", size: 19, o: 0.075, blur: 12 },
+    { top: "8%", left: "58%", size: 11, o: 0.09, blur: 8 },
+    { top: "46%", left: "34%", size: 30, o: 0.045, blur: 22 },
+  ];
+
+  return (
+    <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+      {/* Volumen principal: 7 paradas para un desvanecido muy progresivo que
+          llega a transparente mucho antes del borde de su caja. */}
+      <div
+        className="absolute"
+        style={{
+          inset: "-70%",
+          background: `radial-gradient(closest-side ellipse at 50% 45%,
+            ${hexToRgba(C.gold, 0.2)} 0%,
+            ${hexToRgba(C.gold, 0.145)} 16%,
+            ${hexToRgba(C.gold, 0.095)} 30%,
+            ${hexToRgba(C.gold, 0.055)} 44%,
+            ${hexToRgba(C.gold, 0.026)} 58%,
+            ${hexToRgba(C.gold, 0.01)} 72%,
+            ${hexToRgba(C.gold, 0.003)} 84%,
+            transparent 94%)`,
+        }}
+      />
+      {/* Núcleo cálido, más estrecho, para dar profundidad */}
+      <div
+        className="absolute"
+        style={{
+          inset: "-28%",
+          background: `radial-gradient(closest-side ellipse at 50% 40%,
+            ${hexToRgba(C.goldBright, 0.12)} 0%,
+            ${hexToRgba(C.gold, 0.06)} 30%,
+            ${hexToRgba(C.gold, 0.02)} 54%,
+            transparent 82%)`,
+        }}
+      />
+
+      {/* Bokeh: esferas de luz muy desenfocadas */}
+      <div className="absolute" style={{ inset: "-40%" }}>
+        {bokeh.map((b, i) => (
+          <span
+            key={i}
+            className="absolute rounded-full"
+            style={{
+              top: b.top,
+              left: b.left,
+              width: `${b.size}%`,
+              aspectRatio: "1",
+              background: `radial-gradient(circle, ${hexToRgba(C.goldBright, b.o)} 0%, ${hexToRgba(C.gold, b.o * 0.45)} 42%, transparent 72%)`,
+              filter: `blur(${b.blur}px)`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Micro-partículas de polvo en suspensión, recortadas por una máscara
+          radial para que el campo de puntos no forme un rectángulo. */}
+      <div
+        className="absolute"
+        style={{
+          inset: "-35%",
+          backgroundImage: `radial-gradient(${hexToRgba(C.goldBright, 0.55)} 0.9px, transparent 1.1px),
+                            radial-gradient(${hexToRgba(C.champagne, 0.4)} 0.7px, transparent 0.9px)`,
+          backgroundSize: "58px 58px, 91px 91px",
+          backgroundPosition: "0 0, 29px 41px",
+          opacity: 0.16,
+          maskImage:
+            "radial-gradient(closest-side ellipse at 50% 45%, #000 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.15) 66%, transparent 88%)",
+          WebkitMaskImage:
+            "radial-gradient(closest-side ellipse at 50% 45%, #000 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.15) 66%, transparent 88%)",
+        }}
+      />
+    </div>
+  );
+}
+
+// ─── Disparador del menú: rejilla de puntos dorada que gira y se abre ───────
+function MenuTrigger({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onToggle}
+      aria-label={open ? "Cerrar menú" : "Abrir menú"}
+      aria-expanded={open}
+      whileHover={{ scale: 1.06 }}
+      whileTap={{ scale: 0.94 }}
+      className="relative flex items-center gap-2.5 rounded-full pl-2.5 pr-2.5 md:pr-4 py-2 -ml-1"
+      style={{
+        background: open ? hexToRgba(C.gold, 0.14) : hexToRgba(C.gold, 0.05),
+        border: `1px solid ${hexToRgba(C.gold, open ? 0.5 : 0.2)}`,
+        transition: "background 0.25s ease, border-color 0.25s ease",
+      }}
+    >
+      <motion.span
+        animate={{ rotate: open ? 45 : 0 }}
+        transition={{ duration: 0.4, ease: easeOut }}
+        className="grid grid-cols-3 gap-[3px]"
+      >
+        {Array.from({ length: 9 }).map((_, i) => {
+          // Al abrir, los puntos de las esquinas se desvanecen y queda una cruz
+          const isCross = [1, 3, 4, 5, 7].includes(i);
+          return (
+            <motion.span
+              key={i}
+              animate={{
+                opacity: open ? (isCross ? 1 : 0) : 1,
+                scale: open ? (isCross ? 1.15 : 0.4) : 1,
+              }}
+              transition={{ duration: 0.32, ease: easeOut, delay: i * 0.015 }}
+              className="block w-[4px] h-[4px] rounded-full"
+              style={{ background: open ? C.goldBright : C.gold }}
+            />
+          );
+        })}
+      </motion.span>
+      <span
+        className="hidden md:block text-[11px] font-bold tracking-[0.2em]"
+        style={{ color: open ? C.goldBright : C.muted, fontFamily: "Inter" }}
+      >
+        {open ? "CERRAR" : "MENÚ"}
+      </span>
+    </motion.button>
+  );
+}
+
+// ─── Balón girando (loader) ─────────────────────────────────────────────────
+function SpinningBall({ size = 96 }: { size?: number }) {
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      {/* Anillo orbital dorado */}
+      <div
+        className="absolute inset-[-14px] rounded-full ring-spin"
+        style={{
+          border: "1px dashed rgba(212,175,55,0.45)",
+          borderTopColor: C.goldBright,
+          borderTopStyle: "solid",
+        }}
+      />
+      {/* Halo */}
+      <div
+        className="absolute inset-[-30px] rounded-full pointer-events-none"
+        style={{
+          background: `radial-gradient(circle, ${hexToRgba(C.gold, 0.28)} 0%, transparent 70%)`,
+          filter: "blur(10px)",
+        }}
+      />
+      <img
+        src="/balon.png"
+        alt=""
+        aria-hidden="true"
+        className="relative w-full h-full rounded-full object-cover spin-ball"
+        style={{ boxShadow: `0 0 0 2px ${hexToRgba(C.gold, 0.35)}, 0 14px 40px rgba(0,0,0,0.6)` }}
+      />
+    </div>
+  );
+}
+
+// ─── Pantalla de carga tras el login ────────────────────────────────────────
+function LoaderScreen({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2400);
+    return () => clearTimeout(t);
+  }, [onDone]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.35 }}
+      className="fixed inset-0 z-[110] flex flex-col items-center justify-center px-6"
+      style={{ background: C.black }}
+    >
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at 50% 42%, ${hexToRgba(C.gold, 0.14)} 0%, transparent 62%)`,
+        }}
+      />
+
+      <div className="relative z-10 flex flex-col items-center">
+        <SpinningBall size={104} />
+
+        <motion.h1
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="mt-12 fs-hero font-black tracking-tight gold-shimmer text-center"
+          style={{ fontFamily: "Poppins" }}
+        >
+          TIPSTER GOLD
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-3 text-xs md:text-sm tracking-[0.35em] uppercase"
+          style={{ color: C.muted }}
+        >
+          Preparando tu acceso
+        </motion.p>
+
+        {/* Barra de progreso */}
+        <div
+          className="mt-8 h-[3px] w-56 md:w-72 rounded-full overflow-hidden"
+          style={{ background: "rgba(255,255,255,0.07)" }}
+        >
+          <div className="h-full w-full load-bar" style={{ background: GOLD_GRAD }} />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 // ─── Demo access gate ───────────────────────────────────────────────────────
 // Set to false to remove the password gate once the client purchases the site.
@@ -396,12 +766,12 @@ function DemoGate({ onUnlock }: { onUnlock: () => void }) {
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-      style={{ background: "#0a0a0a" }}
+      style={{ background: C.black }}
     >
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: "radial-gradient(circle at 50% 40%, rgba(0,255,102,0.1) 0%, transparent 60%)",
+          background: `radial-gradient(circle at 50% 38%, ${hexToRgba(C.gold, 0.13)} 0%, transparent 62%)`,
         }}
       />
       <motion.form
@@ -410,16 +780,14 @@ function DemoGate({ onUnlock }: { onUnlock: () => void }) {
         animate={{ opacity: 1, y: 0 }}
         className="relative z-10 w-full max-w-sm rounded-3xl p-8 text-center"
         style={{
-          background: "rgba(17,17,17,0.9)",
-          border: "1px solid rgba(0,255,102,0.25)",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+          background: "rgba(15,15,15,0.92)",
+          border: `1px solid ${hexToRgba(C.gold, 0.28)}`,
+          boxShadow: `0 24px 70px rgba(0,0,0,0.7), 0 0 40px ${hexToRgba(C.gold, 0.08)}`,
         }}
       >
         <img src="/logo.png" alt="TipsterGold" className="w-16 h-16 mx-auto mb-4 object-contain" />
-        <h1 className="text-lg font-black mb-2" style={{ fontFamily: "Poppins" }}>
-          Tipster<span style={{ color: "#00ff66" }}>Gold</span>
-        </h1>
-        <p className="text-xs mb-6" style={{ color: "#b3b3b3" }}>
+        <BrandName className="block text-lg font-black mb-2" />
+        <p className="text-xs mb-6" style={{ color: C.muted }}>
           Vista previa privada. Ingresa la palabra clave para continuar.
         </p>
         <motion.input
@@ -436,8 +804,8 @@ function DemoGate({ onUnlock }: { onUnlock: () => void }) {
           className="w-full text-center px-4 py-3 rounded-xl text-sm mb-3 outline-none"
           style={{
             background: "rgba(255,255,255,0.05)",
-            border: error ? "1px solid #ff4d4d" : "1px solid rgba(255,255,255,0.12)",
-            color: "#ffffff",
+            border: error ? "1px solid #ff4d4d" : `1px solid ${hexToRgba(C.gold, 0.22)}`,
+            color: C.ivory,
             fontFamily: "Inter",
             letterSpacing: "0.1em",
           }}
@@ -450,7 +818,12 @@ function DemoGate({ onUnlock }: { onUnlock: () => void }) {
         <button
           type="submit"
           className="w-full py-3 rounded-xl font-bold text-sm"
-          style={{ background: "#00ff66", color: "#0a0a0a", fontFamily: "Poppins" }}
+          style={{
+            background: GOLD_GRAD,
+            color: C.black,
+            fontFamily: "Poppins",
+            boxShadow: `0 8px 26px ${hexToRgba(C.gold, 0.3)}`,
+          }}
         >
           Desbloquear
         </button>
@@ -461,13 +834,19 @@ function DemoGate({ onUnlock }: { onUnlock: () => void }) {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [unlocked, setUnlocked] = useState(() => !DEMO_LOCK_ENABLED);
+  const [stage, setStage] = useState<"gate" | "loading" | "site">(
+    DEMO_LOCK_ENABLED ? "gate" : "site"
+  );
 
-  if (DEMO_LOCK_ENABLED && !unlocked) {
-    return <DemoGate onUnlock={() => setUnlocked(true)} />;
-  }
-
-  return <SiteContent />;
+  return (
+    <>
+      {stage === "gate" && <DemoGate onUnlock={() => setStage("loading")} />}
+      <AnimatePresence>
+        {stage === "loading" && <LoaderScreen key="loader" onDone={() => setStage("site")} />}
+      </AnimatePresence>
+      {stage === "site" && <SiteContent />}
+    </>
+  );
 }
 
 // ─── SITE CONTENT (only mounted once unlocked) ─────────────────────────────
@@ -506,7 +885,9 @@ function SiteContent() {
   const nextPhoto = () =>
     setLightboxIndex((i) => (i === null ? null : (i + 1) % professionalGallery.length));
   const prevPhoto = () =>
-    setLightboxIndex((i) => (i === null ? null : (i - 1 + professionalGallery.length) % professionalGallery.length));
+    setLightboxIndex((i) =>
+      i === null ? null : (i - 1 + professionalGallery.length) % professionalGallery.length
+    );
 
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -541,6 +922,7 @@ function SiteContent() {
 
   // ─── Background music player ───────────────────────────────────────────────
   const audioRef = useRef<HTMLAudioElement>(null);
+  const playerBoundsRef = useRef<HTMLDivElement>(null);
   const wantsPlayingRef = useRef(true);
   const [trackIndex, setTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -594,117 +976,131 @@ function SiteContent() {
   const onTrackEnded = () => setTrackIndex((i) => (i + 1) % musicTracks.length);
 
   return (
-    <div style={{ background: "#0a0a0a", minHeight: "100vh", overflowX: "hidden" }}>
+    <div style={{ background: C.black, minHeight: "100vh", overflowX: "hidden" }}>
       {/* ── HEADER ── */}
       <header
         className="fixed top-0 left-0 right-0 z-50"
         style={{
-          backgroundColor: scrolled ? "rgba(10,10,10,0.92)" : "transparent",
+          backgroundColor: scrolled ? "rgba(8,8,8,0.92)" : "transparent",
           backdropFilter: scrolled ? "blur(16px)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
-          boxShadow: scrolled ? "0 1px 0 rgba(255,255,255,0.05)" : "none",
+          boxShadow: scrolled ? `0 1px 0 ${hexToRgba(C.gold, 0.18)}` : "none",
           transition: "background-color 0.3s ease, backdrop-filter 0.3s ease",
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-          {/* Logo */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2 cursor-pointer"
+        <div className="wrap h-16 md:h-[86px] flex items-center relative">
+          {/* Hamburguesa (móvil) / Nav (escritorio) — a la izquierda */}
+          <div className="flex-1 flex items-center">
+            <MenuTrigger open={mobileMenu} onToggle={() => setMobileMenu((v) => !v)} />
+          </div>
+
+          {/* Marca centrada — logo + nombre de la página */}
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
             onClick={() => scrollTo("hero")}
+            className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2.5 md:gap-3.5"
+            aria-label="Ir al inicio"
           >
-            <img src="/logo.png" alt="TipsterGold" className="w-[52px] h-[52px] rounded-lg object-cover" />
-            <span className="text-lg font-bold hidden sm:block" style={{ fontFamily: "Poppins" }}>
-              Tipster<span style={{ color: "#00ff66" }}>Gold</span>
+            <img
+              src="/logo.png"
+              alt="TipsterGold"
+              className="w-10 h-10 md:w-[54px] md:h-[54px] rounded-full object-cover"
+              style={{ boxShadow: `0 0 0 1px ${hexToRgba(C.gold, 0.35)}, 0 0 22px ${hexToRgba(C.gold, 0.2)}` }}
+            />
+            <span
+              className="font-black tracking-[0.14em] whitespace-nowrap"
+              style={{
+                fontFamily: "Poppins",
+                fontSize: "clamp(0.9rem, 1.5vw, 1.25rem)",
+                color: C.ivory,
+              }}
+            >
+              TIPSTER <span className="gradient-text">GOLD</span>
             </span>
-          </motion.div>
+          </motion.button>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link, i) => (
-              <button
-                key={link}
-                onClick={() => scrollTo(sectionIds[i])}
-                className="text-sm font-medium transition-colors duration-200"
-                style={{ color: "#b3b3b3", fontFamily: "Inter" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#00ff66")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#b3b3b3")}
-              >
-                {link}
-              </button>
-            ))}
-          </nav>
-
-          {/* CTA */}
-          <div className="flex items-center gap-3">
+          {/* CTA a la derecha */}
+          <div className="flex-1 flex items-center justify-end">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => scrollTo("planes")}
               className="hidden sm:block px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
               style={{
-                background: "#00ff66",
-                color: "#0a0a0a",
+                background: GOLD_GRAD,
+                color: C.black,
                 fontFamily: "Poppins",
-                boxShadow: "0 0 20px rgba(0,255,102,0.3)",
+                boxShadow: `0 0 22px ${hexToRgba(C.gold, 0.32)}`,
               }}
             >
               Únete Ahora
             </motion.button>
-            {/* Hamburger */}
-            <button
-              className="md:hidden p-2"
-              onClick={() => setMobileMenu(!mobileMenu)}
-              style={{ color: "#ffffff" }}
-            >
-              <div className="space-y-1.5">
-                <span
-                  className="block w-6 h-0.5 transition-all"
-                  style={{ background: "#ffffff", transform: mobileMenu ? "rotate(45deg) translate(4px,4px)" : "" }}
-                />
-                <span
-                  className="block w-6 h-0.5 transition-all"
-                  style={{ background: "#ffffff", opacity: mobileMenu ? 0 : 1 }}
-                />
-                <span
-                  className="block w-6 h-0.5 transition-all"
-                  style={{ background: "#ffffff", transform: mobileMenu ? "rotate(-45deg) translate(4px,-4px)" : "" }}
-                />
-              </div>
-            </button>
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Desplegable de navegación (móvil y escritorio) */}
         <AnimatePresence>
           {mobileMenu && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="md:hidden overflow-hidden"
-              style={{ background: "rgba(10,10,10,0.98)", borderTop: "1px solid rgba(255,255,255,0.06)" }}
+              transition={{ duration: 0.32, ease: easeOut }}
+              className="overflow-hidden"
+              style={{
+                background: "rgba(8,8,8,0.985)",
+                borderTop: `1px solid ${hexToRgba(C.gold, 0.2)}`,
+                backdropFilter: "blur(18px)",
+                WebkitBackdropFilter: "blur(18px)",
+              }}
             >
-              <div className="px-4 py-4 flex flex-col gap-4">
-                {navLinks.map((link, i) => (
+              <div className="wrap py-5 md:py-7">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3">
+                  {navLinks.map((link, i) => (
+                    <motion.button
+                      key={link}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.04 * i, duration: 0.28 }}
+                      onClick={() => scrollTo(sectionIds[i])}
+                      className="group text-left rounded-xl px-4 py-3.5 transition-all"
+                      style={{
+                        background: hexToRgba(C.gold, 0.04),
+                        border: `1px solid ${hexToRgba(C.gold, 0.14)}`,
+                        color: C.ivory,
+                        fontFamily: "Inter",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = hexToRgba(C.gold, 0.12);
+                        e.currentTarget.style.borderColor = hexToRgba(C.gold, 0.45);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = hexToRgba(C.gold, 0.04);
+                        e.currentTarget.style.borderColor = hexToRgba(C.gold, 0.14);
+                      }}
+                    >
+                      <span
+                        className="block text-[10px] font-bold tracking-[0.2em] mb-0.5"
+                        style={{ color: C.gold }}
+                      >
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span className="text-base font-semibold">{link}</span>
+                    </motion.button>
+                  ))}
+                </div>
+
+                <div className="mt-4 sm:hidden">
                   <button
-                    key={link}
-                    onClick={() => scrollTo(sectionIds[i])}
-                    className="text-left text-base font-medium py-2"
-                    style={{ color: "#ffffff", fontFamily: "Inter" }}
+                    onClick={() => scrollTo("planes")}
+                    className="w-full py-3.5 rounded-xl font-bold text-base"
+                    style={{ background: GOLD_GRAD, color: C.black, fontFamily: "Poppins" }}
                   >
-                    {link}
+                    Únete Ahora
                   </button>
-                ))}
-                <button
-                  onClick={() => scrollTo("planes")}
-                  className="mt-2 py-3 rounded-xl font-bold text-base"
-                  style={{ background: "#00ff66", color: "#0a0a0a", fontFamily: "Poppins" }}
-                >
-                  Únete Ahora
-                </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -714,16 +1110,15 @@ function SiteContent() {
       {/* ── HERO ── */}
       <section
         id="hero"
-        className="relative min-h-screen flex items-center overflow-hidden"
-        style={{ paddingTop: "80px" }}
+        className="relative flex items-center overflow-hidden"
+        style={{ paddingTop: "84px", minHeight: "min(100svh, 900px)" }}
       >
         {/* Background stadium video */}
         <video
           ref={heroVideoRef}
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ transform: "translateZ(0)" }}
+          style={{ transform: "translateZ(0)", filter: "saturate(0.55) contrast(1.05)" }}
           src="/hero-stadium.mp4"
-          poster="https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=1600&h=900&fit=crop&auto=format"
           autoPlay
           muted
           loop
@@ -733,259 +1128,578 @@ function SiteContent() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(135deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.55) 50%, rgba(10,10,10,0.8) 100%)",
+              "linear-gradient(120deg, rgba(8,8,8,0.94) 0%, rgba(8,8,8,0.72) 45%, rgba(8,8,8,0.92) 100%)",
           }}
         />
-        {/* Green accent light */}
+        {/* Luz ambiental dorada: muchas paradas para un desvanecido largo,
+            sin ningún corte perceptible. */}
         <div
-          className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full pointer-events-none"
+          className="absolute inset-0 pointer-events-none"
           style={{
-            background: "radial-gradient(circle, rgba(0,255,102,0.08) 0%, transparent 70%)",
-            filter: "blur(40px)",
+            background: `radial-gradient(ellipse 62% 52% at 68% 46%, ${hexToRgba(C.gold, 0.11)} 0%, ${hexToRgba(C.gold, 0.075)} 22%, ${hexToRgba(C.gold, 0.042)} 40%, ${hexToRgba(C.gold, 0.02)} 58%, ${hexToRgba(C.gold, 0.007)} 74%, transparent 90%)`,
+          }}
+        />
+        {/* Transiciones largas arriba y abajo para que el vídeo no arranque
+            ni termine con una línea recta. */}
+        <div
+          className="absolute top-0 left-0 right-0 h-28 pointer-events-none"
+          style={{ background: `linear-gradient(to bottom, ${C.black}, transparent)` }}
+        />
+        <div
+          className="absolute bottom-0 left-0 right-0 h-56 pointer-events-none"
+          style={{
+            background: `linear-gradient(to top, ${C.black} 0%, rgba(8,8,8,0.75) 32%, rgba(8,8,8,0.35) 62%, transparent 100%)`,
           }}
         />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-16 grid md:grid-cols-2 gap-12 items-center w-full">
-          {/* Left */}
-          <div>
+        <div className="relative z-10 wrap w-full grid items-center gap-8 md:gap-6 lg:gap-10 md:grid-cols-[0.95fr_1.05fr] pt-4 pb-8 md:py-8">
+          {/* ── Columna de texto ── */}
+          <div className="order-2 md:order-1 text-center md:text-left">
             <motion.h1
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 26 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight mb-6"
+              transition={{ delay: 0.15 }}
+              className="fs-hero font-black mb-4 md:mb-5"
               style={{ fontFamily: "Poppins" }}
             >
-              Aprende a{" "}
-              <span className="gradient-text">Ganar</span>{" "}
-              con Estrategias Deportivas Basadas en{" "}
-              <span style={{ color: "#00ff66" }}>Datos</span>
+              GANA CON <span className="gradient-text">ANÁLISIS</span>
+              <br className="hidden sm:block" /> BASADO EN{" "}
+              <span className="gradient-text">DATOS</span>
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="text-base md:text-lg leading-relaxed mb-8"
-              style={{ color: "#b3b3b3", fontFamily: "Inter", maxWidth: "520px" }}
+              transition={{ delay: 0.3 }}
+              className="fs-lead mb-7 mx-auto md:mx-0"
+              style={{ color: C.muted, fontFamily: "Inter", maxWidth: "50ch" }}
             >
-              Análisis profesionales, estadísticas verificadas, gestión de riesgo y
-              estrategias diseñadas para maximizar tus oportunidades.
+              Te enseño a ser exitoso en el juego deportivo: análisis profesionales, estadísticas
+              verificadas y gestión de banca para que decidas con cabeza, no con suerte.
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4"
+              transition={{ delay: 0.45 }}
+              className="flex flex-col sm:flex-row flex-wrap justify-center md:justify-start gap-3"
             >
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => scrollTo("planes")}
-                className="px-8 py-4 rounded-2xl text-base font-bold"
+                className="px-6 py-3.5 rounded-xl text-sm font-bold whitespace-nowrap"
                 style={{
-                  background: "#00ff66",
-                  color: "#0a0a0a",
+                  background: GOLD_GRAD,
+                  color: C.black,
                   fontFamily: "Poppins",
-                  boxShadow: "0 0 30px rgba(0,255,102,0.4), 0 8px 24px rgba(0,0,0,0.4)",
+                  boxShadow: `0 0 30px ${hexToRgba(C.gold, 0.35)}, 0 8px 22px rgba(0,0,0,0.5)`,
                 }}
               >
                 Comenzar Ahora →
               </motion.button>
+              <motion.a
+                href={TELEGRAM_FREE}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                className="px-6 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 whitespace-nowrap"
+                style={{
+                  background: "rgba(34,158,217,0.14)",
+                  color: "#7fd0f5",
+                  border: "1px solid rgba(34,158,217,0.45)",
+                  fontFamily: "Poppins",
+                }}
+              >
+                <IconTelegram size={16} />
+                Únete Gratis
+              </motion.a>
               <motion.button
-                whileHover={{ scale: 1.05, borderColor: "#00ff66", color: "#00ff66" }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.04, color: C.goldBright }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => scrollTo("resultados")}
-                className="px-8 py-4 rounded-2xl text-base font-semibold transition-all"
+                className="px-6 py-3.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap"
                 style={{
                   background: "transparent",
-                  color: "#ffffff",
-                  border: "1px solid rgba(255,255,255,0.2)",
+                  color: C.ivory,
+                  border: `1px solid ${hexToRgba(C.gold, 0.28)}`,
                   fontFamily: "Poppins",
                 }}
               >
                 Ver Resultados
               </motion.button>
-              <motion.a
-                href="https://t.me/Tgfutboltips"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 rounded-2xl text-base font-bold flex items-center justify-center gap-2"
-                style={{
-                  background: "#229ED9",
-                  color: "#ffffff",
-                  fontFamily: "Poppins",
-                  boxShadow: "0 0 30px rgba(34,158,217,0.4), 0 8px 24px rgba(0,0,0,0.4)",
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M23.91 3.79L20.3 20.84c-.25 1.21-.98 1.5-2 .94l-5.5-4.07-2.66 2.57c-.3.3-.55.56-1.12.56l.4-5.63 10.24-9.26c.44-.4-.1-.62-.68-.22L7.62 13.67l-5.44-1.7c-1.18-.37-1.2-1.18.26-1.75L22.4 2.09c.99-.36 1.85.24 1.51 1.7z" />
-                </svg>
-                Únete Gratis
-              </motion.a>
             </motion.div>
 
-            {/* Social proof row */}
+            {/* Prueba social */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-              className="mt-8 flex items-center gap-4"
+              transition={{ delay: 0.65 }}
+              className="mt-6 flex items-center justify-center md:justify-start gap-3"
             >
-              <div className="flex -space-x-3">
-                {[
-                  "photo-1507003211169-0a1dd7228f2d",
-                  "photo-1494790108377-be9c29b29330",
-                  "photo-1500648767791-00dcc994a43e",
-                  "photo-1472099645785-5658abf4ff4e",
-                ].map((id, i) => (
-                  <img
+              <div className="flex -space-x-2.5">
+                {testimonials.slice(0, 4).map((t, i) => (
+                  <div
                     key={i}
-                    src={`https://images.unsplash.com/${id}?w=40&h=40&fit=crop&auto=format`}
-                    alt="member"
-                    className="w-9 h-9 rounded-full border-2"
-                    style={{ borderColor: "#0a0a0a" }}
-                  />
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold"
+                    style={{
+                      background: `linear-gradient(140deg, ${hexToRgba(C.gold, 0.28)}, rgba(20,18,12,0.95))`,
+                      border: `2px solid ${C.black}`,
+                      color: C.champagne,
+                      fontFamily: "Poppins",
+                    }}
+                  >
+                    {t.initials.slice(0, 2)}
+                  </div>
                 ))}
               </div>
-              <div>
-                <div className="flex" style={{ color: "#00ff66" }}>
-                  {"★★★★★"}
+              <div className="text-left">
+                <div className="text-xs" style={{ color: C.gold, letterSpacing: "1.5px" }}>
+                  ★★★★★
                 </div>
-                <p className="text-xs" style={{ color: "#b3b3b3" }}>
+                <p className="text-[11px]" style={{ color: C.muted }}>
                   +10.000 usuarios satisfechos
                 </p>
               </div>
             </motion.div>
           </div>
 
-          {/* Right – Dashboard mockup */}
+          {/* ── Columna de la foto ── */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
+            initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            className="hidden md:block float-animation"
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="order-1 md:order-2 relative flex flex-col items-center self-center w-full"
           >
-            <div
-              className="rounded-3xl p-6 relative"
-              style={{
-                background: "rgba(17,17,17,0.8)",
-                border: "1px solid rgba(0,255,102,0.2)",
-                backdropFilter: "blur(20px)",
-                boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 60px rgba(0,255,102,0.1)",
-              }}
-            >
-              {/* Mock header */}
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-semibold" style={{ color: "#00ff66", fontFamily: "Inter" }}>
-                  Dashboard · Live
-                </span>
-                <span
-                  className="w-2 h-2 rounded-full pulse-green"
-                  style={{ background: "#00ff66", display: "inline-block" }}
+            {/* La caja define el encuadre: la foto lo llena por completo y se
+                recorta por abajo, así ocupa todo el ancho de su columna. */}
+            <div className="hero-photo relative mx-auto">
+              <HeroAmbience />
+
+              <div className="relative w-full h-full">
+                <img
+                  src={PHOTO_HERO}
+                  alt="Brayan · TipsterGold"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{
+                    objectPosition: "center top",
+                    // Dos máscaras cruzadas: difuminan los laterales y la base,
+                    // para que el fondo del recorte se funda con la sección.
+                    maskImage:
+                      "linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%), linear-gradient(to bottom, #000 0%, #000 70%, transparent 97%)",
+                    WebkitMaskImage:
+                      "linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%), linear-gradient(to bottom, #000 0%, #000 70%, transparent 97%)",
+                    maskComposite: "intersect",
+                    WebkitMaskComposite: "source-in",
+                    filter: `drop-shadow(0 24px 55px rgba(0,0,0,0.8)) drop-shadow(0 0 34px ${hexToRgba(C.gold, 0.18)})`,
+                  }}
                 />
-              </div>
 
-              {/* Stats row */}
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                {[
-                  { label: "Precisión", value: "89.3%", up: true },
-                  { label: "ROI Mes", value: "+42%", up: true },
-                  { label: "Predicciones", value: "2,847", up: true },
-                ].map((s) => (
-                  <div
-                    key={s.label}
-                    className="rounded-xl p-3"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
-                  >
-                    <div className="text-xs mb-1" style={{ color: "#b3b3b3" }}>
-                      {s.label}
-                    </div>
-                    <div className="text-lg font-bold" style={{ fontFamily: "Poppins", color: "#00ff66" }}>
-                      {s.value}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Mini chart */}
-              <div className="mb-4 rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)" }}>
-                <p className="text-xs mb-2" style={{ color: "#b3b3b3" }}>
-                  Rendimiento semanal
-                </p>
-                <ResponsiveContainer width="100%" height={80}>
-                  <AreaChart data={monthlyData.slice(-7)}>
-                    <defs>
-                      <linearGradient id="miniGreen" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#00ff66" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#00ff66" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <Area
-                      type="monotone"
-                      dataKey="roi"
-                      stroke="#00ff66"
-                      strokeWidth={2}
-                      fill="url(#miniGreen)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Predictions list */}
-              {[
-                { match: "Real Madrid vs Bayern", tip: "Ambos marcan", odd: "2.10", status: "WIN" },
-                { match: "Man City vs PSG", tip: "+2.5 goles", odd: "1.85", status: "WIN" },
-                { match: "Inter vs Barcelona", tip: "Inter gana", odd: "2.40", status: "LIVE" },
-              ].map((p) => (
-                <div
-                  key={p.match}
-                  className="flex items-center justify-between py-2 border-b"
-                  style={{ borderColor: "rgba(255,255,255,0.05)" }}
-                >
-                  <div>
-                    <p className="text-xs font-medium" style={{ fontFamily: "Inter", color: "#fff" }}>
-                      {p.match}
-                    </p>
-                    <p className="text-xs" style={{ color: "#b3b3b3" }}>
-                      {p.tip}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold" style={{ color: "#00ff66" }}>
-                      {p.odd}
-                    </span>
-                    <span
-                      className="text-xs px-2 py-0.5 rounded-full font-bold"
-                      style={{
-                        background:
-                          p.status === "WIN"
-                            ? "rgba(0,255,102,0.15)"
-                            : "rgba(255,165,0,0.15)",
-                        color: p.status === "WIN" ? "#00ff66" : "#ffa500",
-                      }}
+                {/* Escritorio: las tarjetas rodean la silueta.
+                    La posición va en left/right (no en transform) para no
+                    chocar con las transformaciones de framer-motion. */}
+                <div className="hidden md:block absolute inset-0 pointer-events-none">
+                  {heroMetrics.map((m) => (
+                    <motion.div
+                      key={m.value}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: m.delay, duration: 0.5 }}
+                      className={`absolute ${m.pos}`}
                     >
-                      {p.status}
+                      <div
+                        className="float-card flex items-center gap-2.5 rounded-xl px-2.5 py-2 backdrop-blur-md whitespace-nowrap"
+                        style={{
+                          background: "rgba(15,15,15,0.86)",
+                          border: `1px solid ${hexToRgba(C.gold, 0.3)}`,
+                          boxShadow: "0 12px 30px rgba(0,0,0,0.55)",
+                          animationDelay: m.floatDelay,
+                        }}
+                      >
+                        <span
+                          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: hexToRgba(C.gold, 0.12),
+                            border: `1px solid ${hexToRgba(C.gold, 0.24)}`,
+                            color: C.gold,
+                          }}
+                        >
+                          <m.icon size={14} />
+                        </span>
+                        <span className="leading-tight">
+                          <span
+                            className="block text-[15px] font-black gradient-text"
+                            style={{ fontFamily: "Poppins" }}
+                          >
+                            {m.value}
+                          </span>
+                          <span className="block text-[10px]" style={{ color: C.muted }}>
+                            {m.label}
+                          </span>
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Móvil: las cuatro métricas quedan quietas y compactas bajo la foto */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.75, duration: 0.5 }}
+              className="md:hidden mt-3 grid grid-cols-2 gap-2 w-full max-w-[20rem] mx-auto"
+            >
+              {heroMetrics.map((m) => (
+                <div
+                  key={m.value}
+                  className="flex items-center gap-2 rounded-lg px-2 py-1.5"
+                  style={{
+                    background: "rgba(15,15,15,0.86)",
+                    border: `1px solid ${hexToRgba(C.gold, 0.24)}`,
+                  }}
+                >
+                  <span className="flex-shrink-0" style={{ color: C.gold }}>
+                    <m.icon size={13} />
+                  </span>
+                  <span className="leading-tight min-w-0">
+                    <span
+                      className="block text-[12px] font-black gradient-text"
+                      style={{ fontFamily: "Poppins" }}
+                    >
+                      {m.value}
                     </span>
-                  </div>
+                    <span className="block text-[9px] truncate" style={{ color: C.muted }}>
+                      {m.label}
+                    </span>
+                  </span>
                 </div>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
+      {/* ── TRUST / STATS ── */}
+      <section
+        className="sec-pad relative"
+        style={{ background: `linear-gradient(180deg, ${C.black} 0%, ${C.panel} 100%)` }}
+      >
+        <div className="wrap">
+          <Section>
+            <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
+              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
+                Resultados <span className="gradient-text">Comprobados</span>
+              </h2>
+              <p className="text-base" style={{ color: C.muted }}>
+                Números reales de nuestra comunidad activa
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+              {[
+                { end: 89, suffix: "%", label: "Precisión Histórica" },
+                { end: 10000, suffix: "+", label: "Usuarios Activos" },
+                { end: 2847, suffix: "", label: "Partidos Analizados/mes" },
+                { end: 42, suffix: "%", label: "ROI Promedio Mensual" },
+              ].map((stat) => (
+                <motion.div
+                  key={stat.label}
+                  variants={scaleIn}
+                  className="card-hover rounded-2xl p-5 md:p-6 text-center"
+                  style={{
+                    background: `linear-gradient(160deg, ${hexToRgba(C.gold, 0.06)} 0%, rgba(15,15,15,0.95) 55%)`,
+                    border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
+                  }}
+                >
+                  <AnimatedStat end={stat.end} suffix={stat.suffix} label={stat.label} />
+                </motion.div>
+              ))}
+            </div>
+          </Section>
+        </div>
+      </section>
+
+      {/* ── GRUPO GRATUITO (foto brayan3) ── */}
+      <section id="gratuito" className="sec-pad" style={{ background: C.panel }}>
+        <div className="wrap">
+          <Section>
+            <motion.div
+              variants={scaleIn}
+              className="rounded-3xl overflow-hidden grid md:grid-cols-2 relative"
+              style={{
+                background: `linear-gradient(120deg, rgba(10,10,10,0.98) 0%, ${hexToRgba(C.gold, 0.07)} 100%)`,
+                border: `1px solid ${hexToRgba(C.gold, 0.2)}`,
+                boxShadow: "0 30px 70px rgba(0,0,0,0.5)",
+              }}
+            >
+              {/* Texto */}
+              <div className="p-6 md:p-12 lg:p-14 flex flex-col justify-center order-2 md:order-1">
+                <div
+                  className="text-xs font-bold tracking-[0.28em] uppercase mb-3"
+                  style={{ color: C.gold, fontFamily: "Inter" }}
+                >
+                  100% Gratis
+                </div>
+                <h2
+                  className="fs-h2 font-black mb-4 leading-[1.05]"
+                  style={{ fontFamily: "Poppins" }}
+                >
+                  CANAL <span className="gradient-text">GRATUITO</span>
+                </h2>
+                <p className="fs-body mb-7" style={{ color: C.muted }}>
+                  Entra sin costo a la comunidad oficial en Telegram. Recibe análisis, selecciones
+                  del día y contenido para que aprendas a jugar con estrategia, no con suerte.
+                </p>
+
+                <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3.5 mb-8">
+                  {[
+                    "Análisis gratuitos",
+                    "Selecciones del día",
+                    "Contenido educativo",
+                    "Gestión de banca para principiantes",
+                    "Acceso vía Telegram",
+                    "Comunidad organizada",
+                  ].map((item) => (
+                    <li
+                      key={item}
+                      className="flex items-center gap-2.5 text-sm md:text-[15px]"
+                      style={{ color: C.ivory }}
+                    >
+                      <span className="flex-shrink-0" style={{ color: C.gold }}>
+                        <IconCheck size={16} />
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+
+                <motion.a
+                  href={TELEGRAM_FREE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="self-start w-full sm:w-auto text-center px-8 py-4 rounded-2xl font-black text-sm md:text-base inline-flex items-center justify-center gap-2.5 tracking-wide"
+                  style={{
+                    background: GOLD_GRAD,
+                    color: C.black,
+                    fontFamily: "Poppins",
+                    boxShadow: `0 12px 34px ${hexToRgba(C.gold, 0.3)}`,
+                  }}
+                >
+                  <IconTelegram size={17} />
+                  ENTRAR AL CANAL GRATUITO
+                </motion.a>
+              </div>
+
+              {/* Foto */}
+              <div className="relative min-h-[340px] sm:min-h-[420px] md:min-h-[560px] order-1 md:order-2 overflow-hidden">
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: `radial-gradient(ellipse 52% 46% at 55% 42%, ${hexToRgba(C.gold, 0.24)} 0%, ${hexToRgba(C.gold, 0.08)} 40%, transparent 70%)`,
+                    filter: "blur(32px)",
+                  }}
+                />
+                <PhotoWithFallback
+                  src={PHOTO_FREE.src}
+                  fallback={PHOTO_FREE.fallback}
+                  alt="Brayan · Canal gratuito TipsterGold"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ objectPosition: "center 12%" }}
+                />
+                {/* Fundidos para integrar el recorte con la tarjeta */}
+                <div
+                  className="absolute inset-0 pointer-events-none hidden md:block"
+                  style={{
+                    background:
+                      "linear-gradient(to right, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.25) 28%, transparent 55%)",
+                  }}
+                />
+                <div
+                  className="absolute inset-x-0 bottom-0 h-24 pointer-events-none md:hidden"
+                  style={{ background: "linear-gradient(to top, rgba(10,10,10,0.95), transparent)" }}
+                />
+              </div>
+            </motion.div>
+          </Section>
+        </div>
+      </section>
+
+      {/* ── MEMBRESÍA ELITE (foto brayan2) ── */}
+      <section id="elite" className="sec-pad" style={{ background: C.black }}>
+        <div className="wrap">
+          <Section>
+            <motion.div
+              variants={scaleIn}
+              className="rounded-3xl overflow-hidden grid md:grid-cols-2 relative"
+              style={{
+                background: `linear-gradient(120deg, ${hexToRgba(C.gold, 0.1)} 0%, rgba(12,11,8,0.98) 62%)`,
+                border: `1px solid ${hexToRgba(C.gold, 0.4)}`,
+                boxShadow: `0 30px 80px rgba(0,0,0,0.6), 0 0 60px ${hexToRgba(C.gold, 0.1)}`,
+              }}
+            >
+              {/* Foto */}
+              <div className="relative min-h-[380px] sm:min-h-[460px] md:min-h-[620px] overflow-hidden">
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: `radial-gradient(ellipse 50% 46% at 50% 40%, ${hexToRgba(C.gold, 0.26)} 0%, ${hexToRgba(C.gold, 0.09)} 40%, transparent 70%)`,
+                    filter: "blur(34px)",
+                  }}
+                />
+                <PhotoWithFallback
+                  src={PHOTO_ELITE.src}
+                  fallback={PHOTO_ELITE.fallback}
+                  alt="Brayan · Membresía Elite TipsterGold"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{
+                    objectPosition: "center top",
+                    // Se agranda y se baja para que el rostro quede visible
+                    // por debajo de la insignia "Más elegido".
+                    transform: "scale(1.2) translateY(9%)",
+                    transformOrigin: "center top",
+                  }}
+                />
+                {/* Insignia */}
+                <div
+                  className="absolute top-5 left-1/2 -translate-x-1/2 px-5 py-2 rounded-full text-[11px] font-black tracking-[0.18em] uppercase whitespace-nowrap"
+                  style={{
+                    background: GOLD_GRAD,
+                    color: C.black,
+                    fontFamily: "Poppins",
+                    boxShadow: `0 8px 26px ${hexToRgba(C.gold, 0.45)}`,
+                  }}
+                >
+                  Más elegido
+                </div>
+                <div
+                  className="absolute inset-0 pointer-events-none hidden md:block"
+                  style={{
+                    background:
+                      "linear-gradient(to left, rgba(12,11,8,0.95) 0%, rgba(12,11,8,0.25) 26%, transparent 52%)",
+                  }}
+                />
+                <div
+                  className="absolute inset-x-0 bottom-0 h-24 pointer-events-none md:hidden"
+                  style={{ background: "linear-gradient(to top, rgba(12,11,8,0.96), transparent)" }}
+                />
+              </div>
+
+              {/* Texto */}
+              <div className="p-6 md:p-12 lg:p-14 flex flex-col justify-center">
+                <div
+                  className="inline-block self-start px-4 py-1.5 rounded-lg text-[11px] font-bold tracking-[0.28em] uppercase mb-4"
+                  style={{
+                    background: hexToRgba(C.gold, 0.1),
+                    border: `1px solid ${hexToRgba(C.gold, 0.3)}`,
+                    color: C.champagne,
+                    fontFamily: "Inter",
+                  }}
+                >
+                  Acceso Premium
+                </div>
+                <h2
+                  className="fs-h2 font-black mb-4 leading-[1.05]"
+                  style={{ fontFamily: "Poppins" }}
+                >
+                  MEMBRESÍA <span className="gradient-text">ELITE</span>
+                </h2>
+                <p className="fs-body mb-7" style={{ color: C.muted }}>
+                  Para quienes quieren seguir mis mejores entradas, con acceso total a todos los
+                  deportes, estrategias privadas y acompañamiento directo.
+                </p>
+
+                <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3.5 mb-7">
+                  {[
+                    "Entradas exclusivas",
+                    "Acceso a todos los deportes",
+                    "Estrategias privadas",
+                    "Gestión profesional de banca",
+                    "Alertas en tiempo real",
+                    "Soporte prioritario",
+                  ].map((item) => (
+                    <li
+                      key={item}
+                      className="flex items-center gap-2.5 text-sm md:text-[15px]"
+                      style={{ color: C.ivory }}
+                    >
+                      <span className="flex-shrink-0" style={{ color: C.goldBright }}>
+                        <IconCheck size={16} />
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Precio */}
+                <div className="flex items-end flex-wrap gap-x-3 gap-y-1 mb-6">
+                  <span
+                    className="text-[11px] font-bold tracking-[0.2em] uppercase pb-2"
+                    style={{ color: C.muted }}
+                  >
+                    Acceso por
+                  </span>
+                  <span
+                    className="text-4xl md:text-5xl font-black gradient-text leading-none"
+                    style={{ fontFamily: "Poppins" }}
+                  >
+                    ${ELITE_PRODUCT.price}
+                  </span>
+                  <span className="text-sm pb-1.5" style={{ color: C.muted }}>
+                    COP
+                  </span>
+                </div>
+
+                <motion.a
+                  href={`${KUNFUPAY_BASE}${ELITE_PRODUCT.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="w-full sm:w-auto self-start text-center px-10 py-4 rounded-2xl font-black text-sm md:text-base tracking-wide"
+                  style={{
+                    background: GOLD_GRAD,
+                    color: C.black,
+                    fontFamily: "Poppins",
+                    boxShadow: `0 12px 38px ${hexToRgba(C.gold, 0.35)}`,
+                  }}
+                >
+                  ACCEDER AL ELITE
+                </motion.a>
+
+                <span
+                  className="mt-4 self-start inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase"
+                  style={{
+                    background: hexToRgba(C.gold, 0.1),
+                    border: `1px solid ${hexToRgba(C.gold, 0.3)}`,
+                    color: C.champagne,
+                  }}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full pulse-gold"
+                    style={{ background: C.goldBright }}
+                  />
+                  Acceso inmediato
+                </span>
+              </div>
+            </motion.div>
+          </Section>
+        </div>
+      </section>
+
       {/* ── PROFESSIONAL GALLERY ── */}
-      <section className="py-12 md:py-24 overflow-hidden" style={{ background: "#0a0a0a" }}>
-        <div className="max-w-7xl mx-auto px-4 md:px-6 mb-10">
+      <section className="sec-pad overflow-hidden" style={{ background: C.black }}>
+        <div className="wrap mb-10">
           <Section>
             <motion.div variants={fadeUp} className="text-center mb-2">
-              <h2 className="text-3xl md:text-4xl font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Cumpliendo Sueños, <span style={{ color: "#00ff66" }}>Ayudándote a Ti</span>
+              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
+                Cumpliendo Sueños, <span className="gradient-text">Ayudándote a Ti</span>
               </h2>
-              <p className="text-base" style={{ color: "#b3b3b3" }}>
+              <p className="text-base" style={{ color: C.muted }}>
                 De estadio en estadio, viviendo el fútbol en primera fila
               </p>
             </motion.div>
@@ -1013,6 +1727,7 @@ function SiteContent() {
                 type="button"
                 onClick={() => setLightboxIndex(i % professionalGallery.length)}
                 className="relative rounded-2xl overflow-hidden flex-shrink-0 group text-left cursor-pointer w-[190px] h-[250px] md:w-[280px] md:h-[360px]"
+                style={{ border: `1px solid ${hexToRgba(C.gold, 0.16)}` }}
               >
                 <img
                   src={photo.img}
@@ -1022,16 +1737,19 @@ function SiteContent() {
                 />
                 <div
                   className="absolute inset-0"
-                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)" }}
+                  style={{
+                    background:
+                      "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.15) 45%, transparent 70%)",
+                  }}
                 />
                 <div
                   className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: "rgba(0,255,102,0.9)", color: "#0a0a0a" }}
+                  style={{ background: GOLD_GRAD, color: C.black }}
                 >
                   🔍
                 </div>
                 <div className="absolute bottom-4 left-4 right-4">
-                  <p className="text-sm font-bold" style={{ fontFamily: "Poppins" }}>
+                  <p className="text-sm font-bold" style={{ fontFamily: "Poppins", color: C.ivory }}>
                     {photo.caption}
                   </p>
                 </div>
@@ -1042,11 +1760,11 @@ function SiteContent() {
           {/* Edge fades */}
           <div
             className="pointer-events-none absolute inset-y-0 left-0 w-12 md:w-28"
-            style={{ background: "linear-gradient(to right, #0a0a0a, transparent)" }}
+            style={{ background: `linear-gradient(to right, ${C.black}, transparent)` }}
           />
           <div
             className="pointer-events-none absolute inset-y-0 right-0 w-12 md:w-28"
-            style={{ background: "linear-gradient(to left, #0a0a0a, transparent)" }}
+            style={{ background: `linear-gradient(to left, ${C.black}, transparent)` }}
           />
         </div>
       </section>
@@ -1063,16 +1781,16 @@ function SiteContent() {
             onClick={closeLightbox}
           >
             <button
-              className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 rounded-full flex items-center justify-center text-white z-10"
-              style={{ background: "rgba(255,255,255,0.1)" }}
+              className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 rounded-full flex items-center justify-center z-10"
+              style={{ background: hexToRgba(C.gold, 0.15), color: C.champagne }}
               onClick={closeLightbox}
             >
               ✕
             </button>
 
             <button
-              className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-white text-2xl z-10"
-              style={{ background: "rgba(255,255,255,0.1)" }}
+              className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-2xl z-10"
+              style={{ background: hexToRgba(C.gold, 0.15), color: C.champagne }}
               onClick={(e) => {
                 e.stopPropagation();
                 prevPhoto();
@@ -1081,8 +1799,8 @@ function SiteContent() {
               ‹
             </button>
             <button
-              className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-white text-2xl z-10"
-              style={{ background: "rgba(255,255,255,0.1)" }}
+              className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-2xl z-10"
+              style={{ background: hexToRgba(C.gold, 0.15), color: C.champagne }}
               onClick={(e) => {
                 e.stopPropagation();
                 nextPhoto();
@@ -1106,7 +1824,7 @@ function SiteContent() {
                   else if (info.offset.x > 80) prevPhoto();
                 }}
                 className="relative max-w-3xl w-full rounded-3xl overflow-hidden"
-                style={{ background: "#111111", border: "1px solid rgba(0,255,102,0.25)" }}
+                style={{ background: C.panel, border: `1px solid ${hexToRgba(C.gold, 0.3)}` }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <img
@@ -1119,7 +1837,7 @@ function SiteContent() {
                   <p className="text-base font-bold" style={{ fontFamily: "Poppins" }}>
                     {professionalGallery[lightboxIndex].caption}
                   </p>
-                  <span className="text-xs" style={{ color: "#b3b3b3" }}>
+                  <span className="text-xs" style={{ color: C.muted }}>
                     {lightboxIndex + 1} / {professionalGallery.length}
                   </span>
                 </div>
@@ -1129,64 +1847,15 @@ function SiteContent() {
         )}
       </AnimatePresence>
 
-      {/* ── TRUST / STATS ── */}
-      <section
-        className="py-12 md:py-24"
-        style={{ background: "linear-gradient(180deg, #0a0a0a 0%, #111111 100%)" }}
-      >
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <Section>
-            <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
-              <h2
-                className="text-3xl md:text-4xl font-black mb-3"
-                style={{ fontFamily: "Poppins" }}
-              >
-                Resultados <span style={{ color: "#00ff66" }}>Comprobados</span>
-              </h2>
-              <p className="text-base" style={{ color: "#b3b3b3" }}>
-                Números reales de nuestra comunidad activa
-              </p>
-            </motion.div>
-
-            <div
-              className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
-            >
-              {[
-                { end: 89, suffix: "%", label: "Precisión Histórica" },
-                { end: 10000, suffix: "+", label: "Usuarios Activos" },
-                { end: 2847, suffix: "", label: "Apuestas Analizadas/mes" },
-                { end: 42, suffix: "%", label: "ROI Promedio Mensual" },
-              ].map((stat) => (
-                <motion.div
-                  key={stat.label}
-                  variants={scaleIn}
-                  className="card-hover rounded-2xl p-6 text-center"
-                  style={{
-                    background: "rgba(17,17,17,0.8)",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                  }}
-                >
-                  <AnimatedStat end={stat.end} suffix={stat.suffix} label={stat.label} />
-                </motion.div>
-              ))}
-            </div>
-          </Section>
-        </div>
-      </section>
-
       {/* ── BENEFITS ── */}
-      <section id="beneficios" className="py-12 md:py-28" style={{ background: "#0a0a0a" }}>
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+      <section id="beneficios" className="sec-pad" style={{ background: C.panel }}>
+        <div className="wrap">
           <Section>
             <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
-              <h2
-                className="text-3xl md:text-4xl font-black mb-3"
-                style={{ fontFamily: "Poppins" }}
-              >
-                Todo lo que Incluye tu{" "}
-                <span style={{ color: "#00ff66" }}>Membresía</span>
+              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
+                Todo lo que Incluye tu <span className="gradient-text">Membresía</span>
               </h2>
-              <p style={{ color: "#b3b3b3" }}>
+              <p style={{ color: C.muted }}>
                 Herramientas profesionales para tomar decisiones basadas en datos
               </p>
             </motion.div>
@@ -1198,23 +1867,27 @@ function SiteContent() {
                   variants={fadeUp}
                   className="card-hover rounded-2xl p-4 md:p-6"
                   style={{
-                    background: `linear-gradient(160deg, ${hexToRgba(b.accent, 0.07)} 0%, rgba(17,17,17,0.9) 45%)`,
-                    border: `1px solid ${hexToRgba(b.accent, 0.25)}`,
+                    background: `linear-gradient(160deg, ${hexToRgba(b.accent, 0.09)} 0%, rgba(10,10,10,0.95) 48%)`,
+                    border: `1px solid ${hexToRgba(b.accent, 0.22)}`,
                   }}
                 >
                   <div
                     className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-3 md:mb-4"
-                    style={{ background: hexToRgba(b.accent, 0.12), color: b.accent }}
+                    style={{
+                      background: hexToRgba(b.accent, 0.13),
+                      color: b.accent,
+                      border: `1px solid ${hexToRgba(b.accent, 0.25)}`,
+                    }}
                   >
                     <b.icon size={18} />
                   </div>
                   <h3
                     className="text-sm md:text-lg font-bold mb-1.5 md:mb-2"
-                    style={{ fontFamily: "Poppins" }}
+                    style={{ fontFamily: "Poppins", color: C.ivory }}
                   >
                     {b.title}
                   </h3>
-                  <p className="text-xs md:text-sm leading-relaxed" style={{ color: "#b3b3b3" }}>
+                  <p className="text-xs md:text-sm leading-relaxed" style={{ color: C.muted }}>
                     {b.desc}
                   </p>
                 </motion.div>
@@ -1225,11 +1898,11 @@ function SiteContent() {
       </section>
 
       {/* ── VIDEO BANNER ── */}
-      <section className="relative py-24 md:py-36 overflow-hidden">
+      <section className="relative sec-pad overflow-hidden">
         <video
           ref={bannerVideoRef}
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ transform: "translateZ(0)" }}
+          style={{ transform: "translateZ(0)", filter: "saturate(0.5)" }}
           src="/section-bg.mp4"
           autoPlay
           muted
@@ -1240,53 +1913,61 @@ function SiteContent() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(10,10,10,0.8) 0%, rgba(10,10,10,0.55) 50%, rgba(10,10,10,0.88) 100%)",
+              "linear-gradient(180deg, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.62) 50%, rgba(8,8,8,0.94) 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 60% 60% at 50% 50%, ${hexToRgba(C.gold, 0.12)} 0%, transparent 70%)`,
           }}
         />
         <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-6 text-center">
           <Section>
             <motion.div
               variants={fadeUp}
-              className="text-xs font-bold tracking-widest mb-4"
-              style={{ color: "#00ff66", fontFamily: "Inter" }}
+              className="text-xs font-bold tracking-[0.25em] mb-4"
+              style={{ color: C.gold, fontFamily: "Inter" }}
             >
               DESDE CUALQUIER ESTADIO DEL MUNDO
             </motion.div>
             <motion.h2
               variants={fadeUp}
-              className="text-3xl md:text-5xl font-black leading-tight mb-6"
+              className="fs-h2 font-black mb-6"
               style={{ fontFamily: "Poppins" }}
             >
               El fútbol se vive <span className="gradient-text">en cada rincón</span> del planeta
             </motion.h2>
-            <motion.p variants={fadeUp} className="text-base md:text-lg" style={{ color: "#e5e5e5", maxWidth: "560px", margin: "0 auto" }}>
-              Analizamos las mejores ligas del mundo para traerte predicciones con datos reales, estés donde estés.
+            <motion.p
+              variants={fadeUp}
+              className="fs-lead"
+              style={{ color: C.muted, maxWidth: "560px", margin: "0 auto" }}
+            >
+              Analizamos las mejores ligas del mundo para traerte predicciones con datos reales,
+              estés donde estés.
             </motion.p>
           </Section>
         </div>
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="py-12 md:py-24" style={{ background: "#111111" }}>
+      <section className="sec-pad" style={{ background: C.panel }}>
         <div className="max-w-4xl mx-auto px-4 md:px-6">
           <Section>
             <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
-              <h2
-                className="text-3xl md:text-4xl font-black mb-3"
-                style={{ fontFamily: "Poppins" }}
-              >
-                Cómo <span style={{ color: "#00ff66" }}>Funciona</span>
+              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
+                Cómo <span className="gradient-text">Funciona</span>
               </h2>
-              <p style={{ color: "#b3b3b3" }}>
-                Tres pasos para comenzar a ganar con estrategia
-              </p>
+              <p style={{ color: C.muted }}>Tres pasos para comenzar a ganar con estrategia</p>
             </motion.div>
 
             <div className="relative">
               {/* Connecting line (desktop) */}
               <div
                 className="hidden md:block absolute top-10 left-16 right-16 h-0.5"
-                style={{ background: "linear-gradient(to right, #00ff66, #00cc55, #00ff66)" }}
+                style={{
+                  background: `linear-gradient(to right, ${hexToRgba(C.gold, 0)}, ${C.gold}, ${C.goldBright}, ${C.gold}, ${hexToRgba(C.gold, 0)})`,
+                }}
               />
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -1320,26 +2001,23 @@ function SiteContent() {
                       whileHover={{ scale: 1.1 }}
                       className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl mb-5 relative z-10"
                       style={{
-                        background: "rgba(0,255,102,0.1)",
-                        border: "2px solid rgba(0,255,102,0.3)",
-                        boxShadow: "0 0 30px rgba(0,255,102,0.15)",
+                        background: `linear-gradient(150deg, ${hexToRgba(C.gold, 0.16)}, rgba(10,10,10,0.98))`,
+                        border: `1px solid ${hexToRgba(C.gold, 0.38)}`,
+                        boxShadow: `0 0 34px ${hexToRgba(C.gold, 0.14)}`,
                       }}
                     >
                       {step.icon}
                     </motion.div>
                     <div
                       className="text-xs font-bold mb-1"
-                      style={{ color: "#00ff66", fontFamily: "Inter", letterSpacing: "0.1em" }}
+                      style={{ color: C.gold, fontFamily: "Inter", letterSpacing: "0.14em" }}
                     >
                       PASO {step.step}
                     </div>
-                    <h3
-                      className="text-xl font-bold mb-2"
-                      style={{ fontFamily: "Poppins" }}
-                    >
+                    <h3 className="text-xl font-bold mb-2" style={{ fontFamily: "Poppins" }}>
                       {step.title}
                     </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: "#b3b3b3" }}>
+                    <p className="text-sm leading-relaxed" style={{ color: C.muted }}>
                       {step.desc}
                     </p>
                   </motion.div>
@@ -1351,14 +2029,14 @@ function SiteContent() {
       </section>
 
       {/* ── VIDEOS ── */}
-      <section className="py-12 md:py-28" style={{ background: "#0a0a0a" }}>
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+      <section className="sec-pad" style={{ background: C.black }}>
+        <div className="wrap">
           <Section>
             <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
-              <h2 className="text-3xl md:text-4xl font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Contenido en <span style={{ color: "#00ff66" }}>Video</span>
+              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
+                Contenido en <span className="gradient-text">Video</span>
               </h2>
-              <p style={{ color: "#b3b3b3" }}>
+              <p style={{ color: C.muted }}>
                 Análisis y pronósticos directo desde nuestro canal de YouTube
               </p>
             </motion.div>
@@ -1369,7 +2047,10 @@ function SiteContent() {
                   key={v.id}
                   variants={fadeUp}
                   className="card-hover rounded-2xl overflow-hidden"
-                  style={{ border: "1px solid rgba(255,255,255,0.06)", background: "rgba(17,17,17,0.9)" }}
+                  style={{
+                    border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
+                    background: "rgba(15,15,15,0.95)",
+                  }}
                 >
                   <div className="relative aspect-video">
                     <button
@@ -1383,13 +2064,19 @@ function SiteContent() {
                         loading="lazy"
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.35)" }} />
+                      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.42)" }} />
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div
                           className="w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
-                          style={{ background: "rgba(0,255,102,0.9)", color: "#0a0a0a" }}
+                          style={{ background: GOLD_GRAD, color: C.black }}
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="md:w-5 md:h-5">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="md:w-5 md:h-5"
+                          >
                             <path d="M8 5v14l11-7z" />
                           </svg>
                         </div>
@@ -1397,7 +2084,10 @@ function SiteContent() {
                     </button>
                   </div>
                   <div className="p-2.5 md:p-4">
-                    <p className="text-xs md:text-sm font-semibold leading-snug" style={{ fontFamily: "Inter", color: "#ffffff" }}>
+                    <p
+                      className="text-xs md:text-sm font-semibold leading-snug"
+                      style={{ fontFamily: "Inter", color: C.ivory }}
+                    >
                       {v.title}
                     </p>
                   </div>
@@ -1411,7 +2101,11 @@ function SiteContent() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#ffffff" }}
+                style={{
+                  background: hexToRgba(C.gold, 0.08),
+                  border: `1px solid ${hexToRgba(C.gold, 0.32)}`,
+                  color: C.champagne,
+                }}
               >
                 Síguenos en Nuestro Canal →
               </a>
@@ -1432,8 +2126,8 @@ function SiteContent() {
             onClick={() => setPlayingVideo(null)}
           >
             <button
-              className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 rounded-full flex items-center justify-center text-white z-10"
-              style={{ background: "rgba(255,255,255,0.1)" }}
+              className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 rounded-full flex items-center justify-center z-10"
+              style={{ background: hexToRgba(C.gold, 0.15), color: C.champagne }}
               onClick={() => setPlayingVideo(null)}
               aria-label="Cerrar video"
             >
@@ -1444,7 +2138,7 @@ function SiteContent() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               className="relative w-full max-w-3xl rounded-2xl overflow-hidden"
-              style={{ border: "1px solid rgba(0,255,102,0.25)" }}
+              style={{ border: `1px solid ${hexToRgba(C.gold, 0.3)}` }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="relative w-full aspect-video" style={{ background: "#000" }}>
@@ -1462,19 +2156,14 @@ function SiteContent() {
       </AnimatePresence>
 
       {/* ── RESULTS ── */}
-      <section id="resultados" className="py-12 md:py-28" style={{ background: "#0a0a0a" }}>
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+      <section id="resultados" className="sec-pad" style={{ background: C.panel }}>
+        <div className="wrap">
           <Section>
             <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
-              <h2
-                className="text-3xl md:text-4xl font-black mb-3"
-                style={{ fontFamily: "Poppins" }}
-              >
-                Resultados
+              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
+                <span className="gradient-text">Resultados</span> Verificados
               </h2>
-              <p style={{ color: "#b3b3b3" }}>
-                Comprobantes reales de ganancias de nuestra comunidad
-              </p>
+              <p style={{ color: C.muted }}>Comprobantes reales de ganancias de nuestra comunidad</p>
             </motion.div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -1483,12 +2172,15 @@ function SiteContent() {
                   key={i}
                   variants={fadeUp}
                   className="card-hover rounded-2xl overflow-hidden cursor-pointer"
-                  style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+                  style={{ border: `1px solid ${hexToRgba(C.gold, 0.18)}` }}
                   onClick={() => setSelectedResult(r)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <div className="relative h-56 overflow-hidden flex items-center justify-center" style={{ background: "#f2f2f2" }}>
+                  <div
+                    className="relative h-56 overflow-hidden flex items-center justify-center"
+                    style={{ background: "#f2f2f2" }}
+                  >
                     <img
                       src={r.img}
                       alt={r.desc}
@@ -1496,25 +2188,19 @@ function SiteContent() {
                     />
                     <div
                       className="absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-black"
-                      style={{ background: "#00ff66", color: "#0a0a0a", fontFamily: "Poppins" }}
+                      style={{ background: GOLD_GRAD, color: C.black, fontFamily: "Poppins" }}
                     >
                       {r.amount}
                     </div>
                   </div>
-                  <div
-                    className="p-4"
-                    style={{ background: "rgba(17,17,17,0.9)" }}
-                  >
-                    <p className="text-xs mb-1" style={{ color: "#00ff66" }}>
+                  <div className="p-4" style={{ background: "rgba(10,10,10,0.96)" }}>
+                    <p className="text-xs mb-1" style={{ color: C.gold }}>
                       {r.date}
                     </p>
-                    <p className="text-sm font-medium" style={{ color: "#ffffff" }}>
+                    <p className="text-sm font-medium" style={{ color: C.ivory }}>
                       {r.desc}
                     </p>
-                    <p
-                      className="text-xs mt-2 flex items-center gap-1"
-                      style={{ color: "#b3b3b3" }}
-                    >
+                    <p className="text-xs mt-2 flex items-center gap-1" style={{ color: C.dim }}>
                       <span>👆</span> Click para ver detalle
                     </p>
                   </div>
@@ -1533,7 +2219,7 @@ function SiteContent() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ background: "rgba(0,0,0,0.9)", backdropFilter: "blur(8px)" }}
+            style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(8px)" }}
             onClick={() => setSelectedResult(null)}
           >
             <motion.div
@@ -1541,10 +2227,13 @@ function SiteContent() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               className="relative max-w-2xl w-full rounded-3xl overflow-hidden"
-              style={{ background: "#111111", border: "1px solid rgba(0,255,102,0.3)" }}
+              style={{ background: C.panel, border: `1px solid ${hexToRgba(C.gold, 0.35)}` }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-full h-80 flex items-center justify-center" style={{ background: "#f2f2f2" }}>
+              <div
+                className="w-full h-80 flex items-center justify-center"
+                style={{ background: "#f2f2f2" }}
+              >
                 <img
                   src={selectedResult.img}
                   alt={selectedResult.desc}
@@ -1552,8 +2241,8 @@ function SiteContent() {
                 />
               </div>
               <button
-                className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-white"
-                style={{ background: "rgba(0,0,0,0.6)" }}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center"
+                style={{ background: "rgba(0,0,0,0.65)", color: C.champagne }}
                 onClick={() => setSelectedResult(null)}
               >
                 ✕
@@ -1561,17 +2250,18 @@ function SiteContent() {
               <div className="p-6">
                 <div
                   className="inline-block px-4 py-2 rounded-full text-lg font-black mb-3"
-                  style={{ background: "rgba(0,255,102,0.15)", color: "#00ff66", fontFamily: "Poppins" }}
+                  style={{
+                    background: hexToRgba(C.gold, 0.14),
+                    color: C.goldBright,
+                    fontFamily: "Poppins",
+                  }}
                 >
                   {selectedResult.amount}
                 </div>
-                <h3
-                  className="text-xl font-bold mb-1"
-                  style={{ fontFamily: "Poppins" }}
-                >
+                <h3 className="text-xl font-bold mb-1" style={{ fontFamily: "Poppins" }}>
                   {selectedResult.desc}
                 </h3>
-                <p className="text-sm" style={{ color: "#b3b3b3" }}>
+                <p className="text-sm" style={{ color: C.muted }}>
                   Resultado verificado · {selectedResult.date}
                 </p>
               </div>
@@ -1581,20 +2271,14 @@ function SiteContent() {
       </AnimatePresence>
 
       {/* ── STATS DASHBOARD ── */}
-      <section id="estadisticas" className="py-12 md:py-28" style={{ background: "#111111" }}>
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+      <section id="estadisticas" className="sec-pad" style={{ background: C.black }}>
+        <div className="wrap">
           <Section>
             <motion.div variants={fadeUp} className="text-center mb-10">
-              <h2
-                className="text-3xl md:text-4xl font-black mb-3"
-                style={{ fontFamily: "Poppins" }}
-              >
-                Dashboard de{" "}
-                <span style={{ color: "#00ff66" }}>Estadísticas</span>
+              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
+                Dashboard de <span className="gradient-text">Estadísticas</span>
               </h2>
-              <p style={{ color: "#b3b3b3" }}>
-                Rendimiento verificado mes a mes
-              </p>
+              <p style={{ color: C.muted }}>Rendimiento verificado mes a mes</p>
             </motion.div>
 
             {/* Tab selector */}
@@ -1605,8 +2289,10 @@ function SiteContent() {
                   onClick={() => setActiveTab(tab)}
                   className="px-5 py-2 rounded-xl text-sm font-semibold transition-all"
                   style={{
-                    background: activeTab === tab ? "#00ff66" : "rgba(255,255,255,0.06)",
-                    color: activeTab === tab ? "#0a0a0a" : "#b3b3b3",
+                    background: activeTab === tab ? GOLD_GRAD : hexToRgba(C.gold, 0.07),
+                    color: activeTab === tab ? C.black : C.muted,
+                    border:
+                      activeTab === tab ? "none" : `1px solid ${hexToRgba(C.gold, 0.18)}`,
                     fontFamily: "Inter",
                   }}
                 >
@@ -1617,38 +2303,48 @@ function SiteContent() {
 
             <motion.div
               variants={scaleIn}
-              className="rounded-3xl p-6 md:p-8"
+              className="rounded-3xl p-4 md:p-8"
               style={{
-                background: "rgba(17,17,17,0.8)",
-                border: "1px solid rgba(255,255,255,0.06)",
+                background: `linear-gradient(160deg, ${hexToRgba(C.gold, 0.05)} 0%, rgba(15,15,15,0.96) 55%)`,
+                border: `1px solid ${hexToRgba(C.gold, 0.18)}`,
               }}
             >
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={monthlyData}>
                   <defs>
-                    <linearGradient id="greenGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#00ff66" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#00ff66" stopOpacity={0} />
+                    <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={C.goldBright} stopOpacity={0.42} />
+                      <stop offset="95%" stopColor={C.gold} stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                  <XAxis dataKey="mes" tick={{ fill: "#b3b3b3", fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#b3b3b3", fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(212,175,55,0.08)" />
+                  <XAxis
+                    dataKey="mes"
+                    tick={{ fill: C.muted, fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: C.muted, fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
                   <Tooltip
+                    cursor={{ stroke: hexToRgba(C.gold, 0.3) }}
                     contentStyle={{
-                      background: "#1a1a1a",
-                      border: "1px solid rgba(0,255,102,0.3)",
+                      background: "#12100a",
+                      border: `1px solid ${hexToRgba(C.gold, 0.35)}`,
                       borderRadius: "12px",
-                      color: "#ffffff",
+                      color: C.ivory,
                     }}
-                    formatter={(v) => [`${v}${activeTab === "roi" ? "%" : "%"}`, activeTab === "roi" ? "ROI" : "Precisión"]}
+                    formatter={(v) => [`${v}%`, activeTab === "roi" ? "ROI" : "Precisión"]}
                   />
                   <Area
                     type="monotone"
                     dataKey={activeTab}
-                    stroke="#00ff66"
+                    stroke={C.goldBright}
                     strokeWidth={2.5}
-                    fill="url(#greenGrad)"
+                    fill="url(#goldGrad)"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -1664,14 +2360,20 @@ function SiteContent() {
               ].map((s) => (
                 <div
                   key={s.sport}
-                  className="rounded-2xl p-4 text-center"
-                  style={{ background: "rgba(17,17,17,0.8)", border: "1px solid rgba(255,255,255,0.06)" }}
+                  className="card-hover rounded-2xl p-4 text-center"
+                  style={{
+                    background: "rgba(15,15,15,0.95)",
+                    border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
+                  }}
                 >
                   <div className="text-xl mb-1">{s.sport.split(" ")[0]}</div>
-                  <div className="text-sm font-semibold" style={{ color: "#b3b3b3" }}>
+                  <div className="text-sm font-semibold" style={{ color: C.muted }}>
                     {s.sport.split(" ").slice(1).join(" ")}
                   </div>
-                  <div className="text-lg font-black mt-1" style={{ color: "#00ff66", fontFamily: "Poppins" }}>
+                  <div
+                    className="text-lg font-black mt-1 gradient-text"
+                    style={{ fontFamily: "Poppins" }}
+                  >
                     {s.coverage}
                   </div>
                 </div>
@@ -1682,19 +2384,19 @@ function SiteContent() {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section id="testimonios" className="py-12 md:py-28 overflow-hidden" style={{ background: "#0a0a0a" }}>
-        <div className="max-w-7xl mx-auto px-4 md:px-6 mb-10">
+      <section
+        id="testimonios"
+        className="sec-pad overflow-hidden"
+        style={{ background: C.panel }}
+      >
+        <div className="wrap mb-10">
           <Section>
             <motion.div variants={fadeUp} className="text-center">
-              <h2
-                className="text-3xl md:text-4xl font-black mb-3"
-                style={{ fontFamily: "Poppins" }}
-              >
-                Lo que Dice Nuestra{" "}
-                <span style={{ color: "#00ff66" }}>Comunidad</span>
+              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
+                Lo que Dice Nuestra <span className="gradient-text">Comunidad</span>
               </h2>
-              <p style={{ color: "#b3b3b3" }}>
-                Más de 10.000 personas ya transformaron su forma de apostar
+              <p style={{ color: C.muted }}>
+                Más de 10.000 personas ya transformaron su forma de jugar
               </p>
             </motion.div>
           </Section>
@@ -1704,7 +2406,10 @@ function SiteContent() {
         <div className="relative overflow-hidden">
           <div
             className="flex gap-5 scroll-left cursor-pointer"
-            style={{ width: "max-content", animationPlayState: testimonialsPaused ? "paused" : "running" }}
+            style={{
+              width: "max-content",
+              animationPlayState: testimonialsPaused ? "paused" : "running",
+            }}
             onClick={() => setTestimonialsPaused((p) => !p)}
             title={testimonialsPaused ? "Toca para reanudar" : "Toca para pausar"}
           >
@@ -1714,31 +2419,39 @@ function SiteContent() {
                 className="flex-shrink-0 rounded-2xl p-6"
                 style={{
                   width: "320px",
-                  background: "rgba(17,17,17,0.9)",
-                  border: "1px solid rgba(255,255,255,0.06)",
+                  background: `linear-gradient(160deg, ${hexToRgba(C.gold, 0.05)} 0%, rgba(10,10,10,0.96) 50%)`,
+                  border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
                 }}
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div
                     className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                    style={{ background: "rgba(0,255,102,0.12)", color: "#00ff66", fontFamily: "Poppins" }}
+                    style={{
+                      background: hexToRgba(C.gold, 0.13),
+                      color: C.goldBright,
+                      border: `1px solid ${hexToRgba(C.gold, 0.28)}`,
+                      fontFamily: "Poppins",
+                    }}
                   >
                     {t.initials}
                   </div>
                   <div>
-                    <p className="text-sm font-bold" style={{ fontFamily: "Poppins" }}>
+                    <p className="text-sm font-bold" style={{ fontFamily: "Poppins", color: C.ivory }}>
                       {t.name}
                     </p>
-                    <p className="text-xs" style={{ color: "#b3b3b3" }}>
+                    <p className="text-xs" style={{ color: C.muted }}>
                       {t.city}
                     </p>
                   </div>
                 </div>
-                <div className="text-yellow-400 text-sm mb-3">{"★".repeat(t.rating)}</div>
-                <p className="text-sm leading-relaxed" style={{ color: "#b3b3b3" }}>
+                <div className="text-sm mb-3" style={{ color: C.gold, letterSpacing: "2px" }}>
+                  {"★".repeat(t.rating)}
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: C.muted }}>
                   "{t.comment}"
                 </p>
-                <p className="text-xs mt-3" style={{ color: "#00ff66" }}>
+                <p className="text-xs mt-3 flex items-center gap-1.5" style={{ color: C.win }}>
+                  <IconCheck size={12} />
                   {t.time}
                 </p>
               </div>
@@ -1747,15 +2460,283 @@ function SiteContent() {
         </div>
       </section>
 
+      {/* ── FINAL CTA ── */}
+      <section
+        className="relative sec-pad text-center overflow-hidden"
+        style={{ background: C.black }}
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 60% 60% at 50% 50%, ${hexToRgba(C.gold, 0.13)} 0%, transparent 70%)`,
+          }}
+        />
+        {/* Balón decorativo */}
+        <div className="absolute -left-10 top-10 opacity-[0.07] hidden md:block">
+          <img src="/balon.png" alt="" aria-hidden="true" className="w-64 h-64 object-contain" />
+        </div>
+        <div className="absolute -right-10 bottom-10 opacity-[0.07] hidden md:block">
+          <img src="/balon.png" alt="" aria-hidden="true" className="w-72 h-72 object-contain" />
+        </div>
+
+        <div className="relative z-10 wrap">
+          <Section>
+            {/* Foto de Brayan presidiendo el cierre */}
+            <motion.div variants={scaleIn} className="relative flex justify-center mb-[-10px]">
+              <div
+                className="absolute inset-x-0 -top-10 h-[26rem] pointer-events-none"
+                style={{
+                  background: `radial-gradient(ellipse 26% 42% at 50% 52%, ${hexToRgba(C.gold, 0.24)} 0%, ${hexToRgba(C.gold, 0.09)} 38%, transparent 68%)`,
+                  filter: "blur(34px)",
+                }}
+              />
+              <img
+                src={PHOTO_HERO}
+                alt="Brayan · TipsterGold"
+                className="relative w-[220px] sm:w-[280px] md:w-[340px] object-contain"
+                style={{
+                  maskImage:
+                    "linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%), linear-gradient(to bottom, #000 0%, #000 68%, transparent 99%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%), linear-gradient(to bottom, #000 0%, #000 68%, transparent 99%)",
+                  maskComposite: "intersect",
+                  WebkitMaskComposite: "source-in",
+                  filter: `drop-shadow(0 22px 50px rgba(0,0,0,0.8)) drop-shadow(0 0 30px ${hexToRgba(C.gold, 0.16)})`,
+                }}
+              />
+            </motion.div>
+
+            <motion.div
+              variants={fadeUp}
+              className="text-xs font-bold tracking-[0.25em] mb-4"
+              style={{ color: C.gold, fontFamily: "Inter" }}
+            >
+              ¿LISTO PARA EL SIGUIENTE NIVEL?
+            </motion.div>
+            <motion.h2
+              variants={fadeUp}
+              className="fs-hero font-black mb-4"
+              style={{ fontFamily: "Poppins" }}
+            >
+              ¿LISTO PARA <span className="gradient-text">FORMAR PARTE?</span>
+            </motion.h2>
+            <motion.p
+              variants={fadeUp}
+              className="fs-lead mb-10"
+              style={{ color: C.muted }}
+            >
+              Elige por dónde empezar. Puedes mejorar tu plan cuando quieras.
+            </motion.p>
+
+            {/* Tres tarjetas de acceso */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 max-w-5xl mx-auto text-left">
+              {[
+                {
+                  icon: IconUsers,
+                  title: "Canal Gratuito",
+                  featured: false,
+                  desc: "Empieza sin costo y sigue los análisis diarios en Telegram.",
+                  cta: "Entrar ahora",
+                  href: TELEGRAM_FREE,
+                },
+                {
+                  icon: IconBolt,
+                  title: "Membresía Elite",
+                  featured: true,
+                  desc: "Entradas exclusivas, alertas en tiempo real y acompañamiento premium.",
+                  cta: "Acceder al Elite",
+                  href: `${KUNFUPAY_BASE}${ELITE_PRODUCT.id}`,
+                },
+                {
+                  icon: IconBell,
+                  title: "Soporte",
+                  featured: false,
+                  desc: "¿Dudas sobre grupos, pagos o accesos? Habla con el equipo.",
+                  cta: "Hablar ahora",
+                  href: TELEGRAM_CONTACT,
+                },
+              ].map((card) => (
+                <motion.a
+                  key={card.title}
+                  variants={fadeUp}
+                  href={card.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ y: -6 }}
+                  className="rounded-2xl p-6 md:p-7 flex flex-col items-center text-center"
+                  style={{
+                    background: card.featured
+                      ? `linear-gradient(160deg, ${hexToRgba(C.gold, 0.14)} 0%, rgba(10,10,10,0.97) 60%)`
+                      : "rgba(13,13,13,0.94)",
+                    border: `1px solid ${hexToRgba(C.gold, card.featured ? 0.5 : 0.16)}`,
+                    boxShadow: card.featured ? `0 0 44px ${hexToRgba(C.gold, 0.16)}` : "none",
+                    transition: "box-shadow 0.3s ease, border-color 0.3s ease",
+                  }}
+                >
+                  <span
+                    className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
+                    style={{
+                      background: hexToRgba(C.gold, card.featured ? 0.18 : 0.08),
+                      border: `1px solid ${hexToRgba(C.gold, card.featured ? 0.5 : 0.24)}`,
+                      color: card.featured ? C.goldBright : C.gold,
+                    }}
+                  >
+                    <card.icon size={20} />
+                  </span>
+                  <h3
+                    className={`text-lg font-black mb-2 ${card.featured ? "gradient-text" : ""}`}
+                    style={{ fontFamily: "Poppins", color: card.featured ? undefined : C.ivory }}
+                  >
+                    {card.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed mb-6" style={{ color: C.muted }}>
+                    {card.desc}
+                  </p>
+                  <span
+                    className="mt-auto w-full py-3 rounded-xl font-bold text-sm"
+                    style={{
+                      background: card.featured ? GOLD_GRAD : "transparent",
+                      color: card.featured ? C.black : C.champagne,
+                      border: card.featured ? "none" : `1px solid ${hexToRgba(C.gold, 0.32)}`,
+                      fontFamily: "Poppins",
+                    }}
+                  >
+                    {card.cta}
+                  </span>
+                </motion.a>
+              ))}
+            </div>
+
+            <motion.p variants={fadeUp} className="mt-8 text-sm" style={{ color: C.dim }}>
+              Sin permanencia · Cancela cuando quieras
+            </motion.p>
+          </Section>
+        </div>
+      </section>
+
+      {/* ── SOPORTE (foto brayan3) ── */}
+      <section className="sec-pad" style={{ background: C.black }}>
+        <div className="wrap">
+          <Section>
+            <motion.div
+              variants={scaleIn}
+              className="rounded-3xl overflow-hidden grid md:grid-cols-2"
+              style={{
+                background: `linear-gradient(210deg, ${hexToRgba(C.gold, 0.08)} 0%, rgba(15,15,15,0.97) 55%)`,
+                border: `1px solid ${hexToRgba(C.gold, 0.2)}`,
+                boxShadow: "0 30px 70px rgba(0,0,0,0.5)",
+              }}
+            >
+              {/* Texto */}
+              <div className="p-6 md:p-12 flex flex-col justify-center">
+                <div
+                  className="text-xs font-bold tracking-[0.22em] uppercase mb-3"
+                  style={{ color: C.gold, fontFamily: "Inter" }}
+                >
+                  Estamos contigo
+                </div>
+                <h2
+                  className="fs-h2 font-black mb-4 leading-tight"
+                  style={{ fontFamily: "Poppins" }}
+                >
+                  Habla con el <span className="gradient-text">soporte</span>
+                </h2>
+                <p className="fs-body mb-6" style={{ color: C.muted }}>
+                  Dudas sobre los grupos, pagos o accesos: el equipo responde todos los días. Nadie
+                  entra solo a la comunidad.
+                </p>
+
+                <div className="grid sm:grid-cols-2 gap-3 mb-8">
+                  {[
+                    "Atención rápida",
+                    "Soporte cercano",
+                    "Resolución de dudas",
+                    "Acompañamiento continuo",
+                  ].map((item) => (
+                    <div
+                      key={item}
+                      className="flex items-center gap-2.5 text-sm rounded-xl px-3 py-2.5"
+                      style={{
+                        color: C.ivory,
+                        background: hexToRgba(C.gold, 0.05),
+                        border: `1px solid ${hexToRgba(C.gold, 0.14)}`,
+                      }}
+                    >
+                      <span style={{ color: C.gold }}>
+                        <IconCheck size={14} />
+                      </span>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+
+                <motion.a
+                  href={TELEGRAM_CONTACT}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="self-start px-6 py-3.5 rounded-xl font-bold text-sm inline-flex items-center gap-2"
+                  style={{
+                    background: GOLD_GRAD,
+                    color: C.black,
+                    fontFamily: "Poppins",
+                    boxShadow: `0 10px 30px ${hexToRgba(C.gold, 0.25)}`,
+                  }}
+                >
+                  <IconTelegram size={15} />
+                  Hablar con soporte
+                </motion.a>
+              </div>
+
+              {/* Panel decorativo */}
+              <div className="relative min-h-[220px] md:min-h-[420px] hidden md:block overflow-hidden">
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: `radial-gradient(circle at 60% 45%, ${hexToRgba(C.gold, 0.16)} 0%, transparent 62%)`,
+                  }}
+                />
+                <img
+                  src="/balon.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute right-[-40px] top-1/2 -translate-y-1/2 w-64 h-64 object-contain opacity-25 float-slow"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div
+                    className="text-center px-8 py-6 rounded-2xl backdrop-blur-sm"
+                    style={{
+                      background: "rgba(8,8,8,0.55)",
+                      border: `1px solid ${hexToRgba(C.gold, 0.22)}`,
+                    }}
+                  >
+                    <div
+                      className="text-4xl font-black gradient-text"
+                      style={{ fontFamily: "Poppins" }}
+                    >
+                      24/7
+                    </div>
+                    <div className="text-xs mt-1 tracking-widest uppercase" style={{ color: C.muted }}>
+                      Comunidad activa
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </Section>
+        </div>
+      </section>
+
       {/* ── PRODUCTOS ── */}
-      <section id="planes" className="py-12 md:py-28" style={{ background: "#111111" }}>
+      <section id="planes" className="sec-pad" style={{ background: C.panel }}>
         <div className="max-w-3xl mx-auto px-4 md:px-6">
           <Section>
             <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
-              <h2 className="text-3xl md:text-4xl font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Nuestros <span style={{ color: "#00ff66" }}>Productos</span>
+              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
+                Nuestros <span className="gradient-text">Productos</span>
               </h2>
-              <p style={{ color: "#b3b3b3" }}>
+              <p style={{ color: C.muted }}>
                 Elige el canal o membresía que se ajuste a ti. Pago seguro, acceso inmediato.
               </p>
             </motion.div>
@@ -1765,28 +2746,45 @@ function SiteContent() {
                 <motion.div
                   key={product.id}
                   variants={fadeUp}
-                  className="card-hover rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="card-hover rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden"
                   style={{
                     background: product.highlight
-                      ? "linear-gradient(135deg, rgba(0,255,102,0.08) 0%, rgba(17,17,17,0.95) 100%)"
-                      : "rgba(17,17,17,0.9)",
+                      ? `linear-gradient(135deg, ${hexToRgba(C.gold, 0.14)} 0%, rgba(10,10,10,0.97) 60%)`
+                      : "rgba(10,10,10,0.94)",
                     border: product.highlight
-                      ? "1px solid rgba(0,255,102,0.4)"
-                      : "1px solid rgba(255,255,255,0.08)",
+                      ? `1px solid ${hexToRgba(C.gold, 0.5)}`
+                      : `1px solid ${hexToRgba(C.gold, 0.14)}`,
+                    boxShadow: product.highlight
+                      ? `0 0 40px ${hexToRgba(C.gold, 0.12)}`
+                      : "none",
                   }}
                 >
+                  {product.highlight && (
+                    <div
+                      className="absolute top-0 right-0 px-3 py-1 text-[10px] font-black tracking-widest uppercase rounded-bl-xl"
+                      style={{ background: GOLD_GRAD, color: C.black, fontFamily: "Poppins" }}
+                    >
+                      Más elegido
+                    </div>
+                  )}
                   <div>
                     <h3
-                      className="text-base md:text-lg font-bold mb-1"
-                      style={{ fontFamily: "Poppins", color: product.highlight ? "#00ff66" : "#ffffff" }}
+                      className="fs-lead font-bold mb-1 pr-24 sm:pr-0"
+                      style={{
+                        fontFamily: "Poppins",
+                        color: product.highlight ? C.goldBright : C.ivory,
+                      }}
                     >
                       {product.name}
                     </h3>
-                    <p className="text-xs md:text-sm mb-2" style={{ color: "#b3b3b3" }}>
+                    <p className="text-xs md:text-sm mb-2" style={{ color: C.muted }}>
                       {product.desc}
                     </p>
-                    <p className="text-lg font-black" style={{ fontFamily: "Poppins", color: "#ffffff" }}>
-                      ${product.price} <span className="text-xs font-normal" style={{ color: "#b3b3b3" }}>COP</span>
+                    <p className="text-lg font-black" style={{ fontFamily: "Poppins", color: C.ivory }}>
+                      ${product.price}{" "}
+                      <span className="text-xs font-normal" style={{ color: C.muted }}>
+                        COP
+                      </span>
                     </p>
                   </div>
                   <motion.a
@@ -1797,11 +2795,11 @@ function SiteContent() {
                     whileTap={{ scale: 0.96 }}
                     className="shrink-0 text-center px-6 py-3 rounded-xl font-bold text-sm transition-all"
                     style={{
-                      background: product.highlight ? "#00ff66" : "transparent",
-                      color: product.highlight ? "#0a0a0a" : "#00ff66",
-                      border: product.highlight ? "none" : "1px solid rgba(0,255,102,0.4)",
+                      background: product.highlight ? GOLD_GRAD : "transparent",
+                      color: product.highlight ? C.black : C.goldBright,
+                      border: product.highlight ? "none" : `1px solid ${hexToRgba(C.gold, 0.4)}`,
                       fontFamily: "Poppins",
-                      boxShadow: product.highlight ? "0 0 20px rgba(0,255,102,0.3)" : "none",
+                      boxShadow: product.highlight ? `0 0 22px ${hexToRgba(C.gold, 0.3)}` : "none",
                     }}
                   >
                     Ver Producto
@@ -1810,111 +2808,39 @@ function SiteContent() {
               ))}
             </div>
 
-            <motion.p variants={fadeUp} className="text-center text-xs mt-8" style={{ color: "#555" }}>
+            <motion.p variants={fadeUp} className="text-center text-xs mt-8" style={{ color: C.dim }}>
               Pagos procesados de forma segura por KunFuPay
             </motion.p>
           </Section>
         </div>
       </section>
 
-      {/* ── FINAL CTA ── */}
-      <section
-        className="relative py-24 md:py-40 text-center overflow-hidden"
-        style={{ background: "#111111" }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1600&h=700&fit=crop&auto=format')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            opacity: 0.07,
-          }}
-        />
-        {/* Green radial glow */}
-        <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          style={{
-            background: "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(0,255,102,0.08) 0%, transparent 70%)",
-          }}
-        />
-        <div className="relative z-10 max-w-3xl mx-auto px-4">
-          <Section>
-            <motion.div
-              variants={fadeUp}
-              className="text-xs font-bold tracking-widest mb-4"
-              style={{ color: "#00ff66", fontFamily: "Inter" }}
-            >
-              ¿LISTO PARA EL SIGUIENTE NIVEL?
-            </motion.div>
-            <motion.h2
-              variants={fadeUp}
-              className="text-4xl md:text-6xl font-black leading-tight mb-6"
-              style={{ fontFamily: "Poppins" }}
-            >
-              ¿Listo para llevar tus{" "}
-              <span className="gradient-text">resultados</span>{" "}
-              al siguiente nivel?
-            </motion.h2>
-            <motion.p
-              variants={fadeUp}
-              className="text-lg mb-10"
-              style={{ color: "#b3b3b3" }}
-            >
-              Únete a más de 10.000 usuarios que ya ganan con estrategia y datos.
-              Sin riesgos, sin contratos.
-            </motion.p>
-            <motion.div variants={fadeUp}>
-              <motion.button
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => scrollTo("planes")}
-                className="px-12 py-5 rounded-2xl text-xl font-black"
-                style={{
-                  background: "#00ff66",
-                  color: "#0a0a0a",
-                  fontFamily: "Poppins",
-                  boxShadow:
-                    "0 0 60px rgba(0,255,102,0.5), 0 0 120px rgba(0,255,102,0.2), 0 16px 40px rgba(0,0,0,0.5)",
-                }}
-              >
-                Únete Hoy →
-              </motion.button>
-              <p className="mt-4 text-sm" style={{ color: "#555" }}>
-                Sin tarjeta de crédito requerida · Cancela en cualquier momento
-              </p>
-            </motion.div>
-          </Section>
-        </div>
-      </section>
-
       {/* ── FOOTER ── */}
       <footer
-        className="py-16 md:py-20"
-        style={{ background: "#0a0a0a", borderTop: "1px solid rgba(255,255,255,0.06)" }}
+        className="sec-pad"
+        style={{ background: C.panel, borderTop: `1px solid ${hexToRgba(C.gold, 0.16)}` }}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <div className="wrap">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
-                <img src="/logo.png" alt="TipsterGold" className="w-[52px] h-[52px] rounded-xl object-cover" />
-                <span className="text-lg font-bold" style={{ fontFamily: "Poppins" }}>
-                  Tipster<span style={{ color: "#00ff66" }}>Gold</span>
-                </span>
+                <img
+                  src="/logo.png"
+                  alt="TipsterGold"
+                  className="w-[52px] h-[52px] rounded-xl object-cover"
+                  style={{ boxShadow: `0 0 0 1px ${hexToRgba(C.gold, 0.25)}` }}
+                />
+                <BrandName className="text-lg font-bold" />
               </div>
-              <p className="text-sm leading-relaxed" style={{ color: "#b3b3b3", maxWidth: "200px" }}>
+              <p className="text-sm leading-relaxed" style={{ color: C.muted, maxWidth: "200px" }}>
                 La plataforma de análisis deportivo más confiable para maximizar tus oportunidades.
               </p>
             </div>
 
             {/* Empresa */}
             <div>
-              <h4
-                className="text-sm font-bold mb-4"
-                style={{ fontFamily: "Poppins", color: "#ffffff" }}
-              >
+              <h4 className="text-sm font-bold mb-4" style={{ fontFamily: "Poppins", color: C.ivory }}>
                 Empresa
               </h4>
               <ul className="space-y-2">
@@ -1923,9 +2849,9 @@ function SiteContent() {
                     <a
                       href="#"
                       className="text-sm transition-colors"
-                      style={{ color: "#b3b3b3" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#00ff66")}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "#b3b3b3")}
+                      style={{ color: C.muted }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = C.goldBright)}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = C.muted)}
                     >
                       {item}
                     </a>
@@ -1936,10 +2862,7 @@ function SiteContent() {
 
             {/* Legal */}
             <div>
-              <h4
-                className="text-sm font-bold mb-4"
-                style={{ fontFamily: "Poppins", color: "#ffffff" }}
-              >
+              <h4 className="text-sm font-bold mb-4" style={{ fontFamily: "Poppins", color: C.ivory }}>
                 Legal
               </h4>
               <ul className="space-y-2">
@@ -1948,9 +2871,9 @@ function SiteContent() {
                     <a
                       href="#"
                       className="text-sm transition-colors"
-                      style={{ color: "#b3b3b3" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#00ff66")}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "#b3b3b3")}
+                      style={{ color: C.muted }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = C.goldBright)}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = C.muted)}
                     >
                       {item}
                     </a>
@@ -1961,114 +2884,89 @@ function SiteContent() {
 
             {/* Contact + Social */}
             <div>
-              <h4
-                className="text-sm font-bold mb-4"
-                style={{ fontFamily: "Poppins", color: "#ffffff" }}
-              >
+              <h4 className="text-sm font-bold mb-4" style={{ fontFamily: "Poppins", color: C.ivory }}>
                 Contacto
               </h4>
               <ul className="space-y-2 mb-4">
                 <li className="text-sm">
                   <a
                     href="mailto:tipstergold@outlook.com"
-                    style={{ color: "#b3b3b3" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#00ff66")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#b3b3b3")}
+                    style={{ color: C.muted }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = C.goldBright)}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = C.muted)}
                   >
                     tipstergold@outlook.com
                   </a>
                 </li>
-                <li className="text-sm" style={{ color: "#b3b3b3" }}>
+                <li className="text-sm" style={{ color: C.muted }}>
                   Lun–Vie 9:00–20:00
                 </li>
               </ul>
 
               <a
-                href="https://t.me/TipsterGold_1"
+                href={TELEGRAM_CONTACT}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold mb-6 transition-all"
-                style={{ background: "rgba(34,158,217,0.12)", border: "1px solid rgba(34,158,217,0.4)", color: "#4fc3f7" }}
+                style={{
+                  background: hexToRgba(C.gold, 0.08),
+                  border: `1px solid ${hexToRgba(C.gold, 0.32)}`,
+                  color: C.champagne,
+                }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M23.91 3.79L20.3 20.84c-.25 1.21-.98 1.5-2 .94l-5.5-4.07-2.66 2.57c-.3.3-.55.56-1.12.56l.4-5.63 10.24-9.26c.44-.4-.1-.62-.68-.22L7.62 13.67l-5.44-1.7c-1.18-.37-1.2-1.18.26-1.75L22.4 2.09c.99-.36 1.85.24 1.51 1.7z" />
-                </svg>
+                <IconTelegram size={14} />
                 Contáctanos por Telegram
               </a>
 
-              <h4
-                className="text-sm font-bold mb-3"
-                style={{ fontFamily: "Poppins", color: "#ffffff" }}
-              >
+              <h4 className="text-sm font-bold mb-3" style={{ fontFamily: "Poppins", color: C.ivory }}>
                 Redes Sociales
               </h4>
               <div className="flex gap-3">
-                {/* Instagram */}
-                <a
-                  href="https://www.instagram.com/tgbrianfut_/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", color: "#b3b3b3" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(0,255,102,0.15)";
-                    e.currentTarget.style.borderColor = "rgba(0,255,102,0.4)";
-                    e.currentTarget.style.color = "#00ff66";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                    e.currentTarget.style.color = "#b3b3b3";
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                  </svg>
-                </a>
-                {/* TikTok */}
-                <a
-                  href="https://www.tiktok.com/@elprofetg"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", color: "#b3b3b3" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(0,255,102,0.15)";
-                    e.currentTarget.style.borderColor = "rgba(0,255,102,0.4)";
-                    e.currentTarget.style.color = "#00ff66";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                    e.currentTarget.style.color = "#b3b3b3";
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.27 8.27 0 004.84 1.55V6.78a4.85 4.85 0 01-1.07-.09z" />
-                  </svg>
-                </a>
-                {/* YouTube */}
-                <a
-                  href="https://www.youtube.com/@TgBrianfut"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", color: "#b3b3b3" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(0,255,102,0.15)";
-                    e.currentTarget.style.borderColor = "rgba(0,255,102,0.4)";
-                    e.currentTarget.style.color = "#00ff66";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                    e.currentTarget.style.color = "#b3b3b3";
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                  </svg>
-                </a>
+                {[
+                  {
+                    href: "https://www.instagram.com/tgbrianfut_/",
+                    label: "Instagram",
+                    path: "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z",
+                  },
+                  {
+                    href: "https://www.tiktok.com/@elprofetg",
+                    label: "TikTok",
+                    path: "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.27 8.27 0 004.84 1.55V6.78a4.85 4.85 0 01-1.07-.09z",
+                  },
+                  {
+                    href: "https://www.youtube.com/@TgBrianfut",
+                    label: "YouTube",
+                    path: "M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z",
+                  },
+                ].map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
+                    style={{
+                      background: hexToRgba(C.gold, 0.05),
+                      border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
+                      color: C.muted,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = hexToRgba(C.gold, 0.16);
+                      e.currentTarget.style.borderColor = hexToRgba(C.gold, 0.45);
+                      e.currentTarget.style.color = C.goldBright;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = hexToRgba(C.gold, 0.05);
+                      e.currentTarget.style.borderColor = hexToRgba(C.gold, 0.16);
+                      e.currentTarget.style.color = C.muted;
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d={s.path} />
+                    </svg>
+                  </a>
+                ))}
               </div>
             </div>
           </div>
@@ -2076,21 +2974,18 @@ function SiteContent() {
           {/* Bottom bar */}
           <div
             className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
-            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+            style={{ borderTop: `1px solid ${hexToRgba(C.gold, 0.12)}` }}
           >
-            <p className="text-xs" style={{ color: "#555" }}>
+            <p className="text-xs" style={{ color: C.dim }}>
               © 2025 TipsterGold. Todos los derechos reservados.
             </p>
-            <p className="text-xs text-center" style={{ color: "#555", maxWidth: "400px" }}>
-              Las apuestas deportivas implican riesgo. Apuesta responsablemente.
-              Solo mayores de 18 años.
+            <p className="text-xs text-center" style={{ color: C.dim, maxWidth: "400px" }}>
+              Las apuestas deportivas implican riesgo. Apuesta responsablemente. Solo mayores de 18
+              años.
             </p>
             <div className="flex items-center gap-2">
-              <div
-                className="w-2 h-2 rounded-full pulse-green"
-                style={{ background: "#00ff66" }}
-              />
-              <span className="text-xs" style={{ color: "#00ff66" }}>
+              <div className="w-2 h-2 rounded-full pulse-gold" style={{ background: C.gold }} />
+              <span className="text-xs" style={{ color: C.gold }}>
                 Plataforma activa
               </span>
             </div>
@@ -2102,9 +2997,9 @@ function SiteContent() {
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs transition-colors"
-              style={{ color: "#555" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#00ff66")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
+              style={{ color: C.dim }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = C.goldBright)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = C.dim)}
             >
               Desarrollado por CODE STUDIO
             </a>
@@ -2114,7 +3009,7 @@ function SiteContent() {
 
       {/* ── FLOATING CONTACT BALL ── */}
       <motion.a
-        href="https://t.me/TipsterGold_1"
+        href={TELEGRAM_CONTACT}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Contáctanos por Telegram"
@@ -2123,47 +3018,106 @@ function SiteContent() {
         transition={{ delay: 1.2, type: "spring" }}
         whileHover={{ scale: 1.12 }}
         whileTap={{ scale: 0.92 }}
-        className="fixed z-50 bottom-5 right-5 md:bottom-6 md:right-6 w-16 h-16 md:w-[72px] md:h-[72px] rounded-full float-animation"
+        className="fixed z-50 bottom-4 right-4 md:bottom-5 md:right-5 w-14 h-14 md:w-16 md:h-16 rounded-full float-animation"
       >
         <img
           src="/balon.png"
           alt="Contacto"
           className="w-full h-full rounded-full object-cover"
           style={{
-            boxShadow: "0 8px 24px rgba(0,0,0,0.6), 0 0 0 4px rgba(0,255,102,0.25), 0 0 30px rgba(0,255,102,0.3)",
+            boxShadow: `0 8px 24px rgba(0,0,0,0.7), 0 0 0 3px ${hexToRgba(C.gold, 0.35)}, 0 0 30px ${hexToRgba(C.gold, 0.32)}`,
           }}
         />
       </motion.a>
 
       {/* ── MUSIC PLAYER ── */}
       <audio ref={audioRef} src={musicTracks[trackIndex].src} onEnded={onTrackEnded} preload="auto" />
+      {/* Móvil: solo un disco que enciende y apaga la música, abajo a la izquierda */}
+      <motion.button
+        type="button"
+        onClick={togglePlay}
+        aria-label={isPlaying ? "Apagar música" : "Encender música"}
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1.2, type: "spring" }}
+        whileTap={{ scale: 0.9 }}
+        className="sm:hidden fixed z-50 bottom-4 left-4 w-11 h-11 rounded-full flex items-center justify-center"
+        style={{
+          background: "rgba(15,15,15,0.92)",
+          border: `1px solid ${hexToRgba(C.gold, isPlaying ? 0.55 : 0.28)}`,
+          boxShadow: `0 6px 18px rgba(0,0,0,0.6)${
+            isPlaying ? `, 0 0 18px ${hexToRgba(C.gold, 0.28)}` : ""
+          }`,
+        }}
+      >
+        {/* Disco de vinilo: gira mientras suena */}
+        <span
+          className={`relative w-7 h-7 rounded-full flex items-center justify-center ${
+            isPlaying ? "spin-ball" : ""
+          }`}
+          style={{
+            background: `radial-gradient(circle at 50% 50%, ${hexToRgba(C.gold, 0.22)} 0 34%, rgba(8,8,8,0.9) 35% 100%)`,
+            border: `1px solid ${hexToRgba(C.gold, 0.45)}`,
+            opacity: isPlaying ? 1 : 0.55,
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style={{ color: C.gold }}>
+            <path d="M9 18V6l10-2v12" opacity="0" />
+            <path d="M20 3v12.5a3.5 3.5 0 1 1-2-3.16V7.2L10 8.9v8.6a3.5 3.5 0 1 1-2-3.16V6.2L20 3z" />
+          </svg>
+        </span>
+      </motion.button>
+
+      {/* Escritorio: reproductor completo y arrastrable.
+          La capa delimita hasta dónde se puede mover. */}
+      <div
+        ref={playerBoundsRef}
+        className="hidden sm:flex fixed inset-0 z-50 pointer-events-none items-end justify-center pb-4 md:pb-5"
+      >
       <motion.div
+        drag
+        dragConstraints={playerBoundsRef}
+        dragMomentum={false}
+        dragElastic={0}
+        whileDrag={{ scale: 1.06, cursor: "grabbing" }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.2 }}
-        className="fixed z-50 bottom-5 left-5 md:bottom-6 md:left-6 flex items-center gap-2 pl-2 pr-3 py-2 rounded-full"
+        className="pointer-events-auto flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full touch-none"
         style={{
-          background: "rgba(17,17,17,0.85)",
-          border: "1px solid rgba(0,255,102,0.25)",
+          background: "rgba(15,15,15,0.9)",
+          border: `1px solid ${hexToRgba(C.gold, 0.28)}`,
           backdropFilter: "blur(12px)",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+          boxShadow: "0 6px 18px rgba(0,0,0,0.6)",
+          cursor: "grab",
         }}
-        title={musicTracks[trackIndex].title}
+        title={`${musicTracks[trackIndex].title} · arrástrame`}
       >
+        {/* Asa de arrastre */}
+        <span
+          className="flex flex-col gap-[3px] px-1 flex-shrink-0"
+          aria-hidden="true"
+          style={{ opacity: 0.55 }}
+        >
+          <span className="block w-[9px] h-[1.5px] rounded-full" style={{ background: C.gold }} />
+          <span className="block w-[9px] h-[1.5px] rounded-full" style={{ background: C.gold }} />
+          <span className="block w-[9px] h-[1.5px] rounded-full" style={{ background: C.gold }} />
+        </span>
+
         <button
           type="button"
           onClick={togglePlay}
           aria-label={isPlaying ? "Pausar música" : "Reproducir música"}
-          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{ background: "#00ff66", color: "#0a0a0a" }}
+          className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+          style={{ background: GOLD_GRAD, color: C.black }}
         >
           {isPlaying ? (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor">
               <rect x="5" y="4" width="5" height="16" rx="1" />
               <rect x="14" y="4" width="5" height="16" rx="1" />
             </svg>
           ) : (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor">
               <path d="M6 4l14 8-14 8V4z" />
             </svg>
           )}
@@ -2176,22 +3130,25 @@ function SiteContent() {
           step={0.01}
           value={volume}
           onChange={(e) => changeVolume(parseFloat(e.target.value))}
+          onPointerDown={(e) => e.stopPropagation()}
           aria-label="Volumen"
-          className="w-12 md:w-16 accent-[#00ff66]"
+          className="w-10 md:w-12 h-1"
+          style={{ accentColor: C.gold }}
         />
 
         <button
           type="button"
           onClick={switchTrack}
           aria-label="Cambiar canción"
-          className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{ background: "rgba(255,255,255,0.08)", color: "#ffffff" }}
+          className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+          style={{ background: hexToRgba(C.gold, 0.12), color: C.champagne }}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor">
             <path d="M5 5v14l9-7-9-7zM15 5v14l9-7-9-7z" />
           </svg>
         </button>
       </motion.div>
+      </div>
     </div>
   );
 }

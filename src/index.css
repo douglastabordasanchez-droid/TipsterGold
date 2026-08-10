@@ -1,21 +1,41 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap');
 @import 'tailwindcss';
 
+/* ─────────────────────────────────────────────────────────────
+   PALETA — Negro & Dorado
+   Acentos de apoyo: champán, bronce, platino, marfil
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --black: #080808;
+  --panel: #0f0f0f;
+  --panel-2: #15120c;
+  --gold: #d4af37;
+  --gold-bright: #f6d66b;
+  --gold-deep: #9a7b1f;
+  --champagne: #ead9a6;
+  --bronze: #b87333;
+  --platinum: #c9cdd4;
+  --ivory: #f3eee3;
+  --muted: #a29c90;
+  --dim: #6b665d;
+  --grad-gold: linear-gradient(135deg, #9a7b1f 0%, #f6d66b 45%, #d4af37 100%);
+}
+
 @theme inline {
-  --color-background: #0a0a0a;
-  --color-foreground: #ffffff;
-  --color-card: #111111;
-  --color-card-foreground: #ffffff;
-  --color-primary: #00ff66;
-  --color-primary-foreground: #0a0a0a;
-  --color-secondary: #00cc55;
-  --color-secondary-foreground: #ffffff;
-  --color-muted: #1a1a1a;
-  --color-muted-foreground: #b3b3b3;
-  --color-accent: #00ff66;
-  --color-accent-foreground: #0a0a0a;
-  --color-border: rgba(255,255,255,0.08);
-  --color-ring: #00ff66;
+  --color-background: #080808;
+  --color-foreground: #f3eee3;
+  --color-card: #0f0f0f;
+  --color-card-foreground: #f3eee3;
+  --color-primary: #d4af37;
+  --color-primary-foreground: #080808;
+  --color-secondary: #9a7b1f;
+  --color-secondary-foreground: #f3eee3;
+  --color-muted: #15120c;
+  --color-muted-foreground: #a29c90;
+  --color-accent: #f6d66b;
+  --color-accent-foreground: #080808;
+  --color-border: rgba(212, 175, 55, 0.14);
+  --color-ring: #d4af37;
   --radius-default: 12px;
 
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -31,14 +51,82 @@ html {
 }
 
 body {
-  background-color: #0a0a0a;
-  color: #ffffff;
+  background-color: #080808;
+  color: #f3eee3;
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
-/* Hide scrollbar while still scrollable */
+/* ── Escala tipográfica fluida ──
+   Se encoge en portátiles de 13" y crece en monitores grandes,
+   sin llegar nunca a tamaños incómodos en móvil. */
+.fs-hero {
+  font-size: clamp(1.6rem, 3.1vw, 3.6rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+}
+.fs-h2 {
+  font-size: clamp(1.45rem, 2.1vw, 2.35rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+.fs-h3 {
+  font-size: clamp(0.98rem, 1.15vw, 1.22rem);
+  line-height: 1.3;
+}
+.fs-lead {
+  font-size: clamp(0.9rem, 1vw, 1.08rem);
+  line-height: 1.62;
+}
+.fs-body {
+  font-size: clamp(0.82rem, 0.9vw, 0.96rem);
+  line-height: 1.6;
+}
+.fs-eyebrow {
+  font-size: clamp(0.62rem, 0.68vw, 0.76rem);
+}
+.fs-stat {
+  font-size: clamp(1.5rem, 2vw, 2.25rem);
+  line-height: 1.05;
+}
+
+/* Espaciado vertical de secciones, también fluido */
+.sec-pad {
+  padding-block: clamp(2.75rem, 4.6vw, 5.5rem);
+}
+
+/* Foto del hero: se dimensiona por alto disponible, pero nunca supera el 70%
+   de su columna. Así deja aire a los lados para las tarjetas y jamás se sale
+   de pantalla, sin importar el tamaño del monitor ni el zoom. */
+/* El ancho manda (protagonismo), y el alto se recorta contra el viewport:
+   la foto se encuadra desde arriba y se difumina abajo, así siempre llena
+   su columna aunque la ventana sea baja. */
+.hero-photo {
+  width: min(100%, 28rem);
+  height: min(66vh, 600px);
+}
+@media (max-width: 767px) {
+  .hero-photo {
+    width: min(94%, 19rem);
+    height: min(46vh, 350px);
+  }
+}
+
+/* Contenedor estándar (mismo ancho que max-w-7xl + padding responsive) */
+.wrap {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+@media (min-width: 768px) {
+  .wrap {
+    padding-inline: 1.5rem;
+  }
+}
+
+/* Scrollbar dorado */
 ::-webkit-scrollbar {
   width: 4px;
 }
@@ -46,54 +134,86 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #00ff6633;
+  background: rgba(212, 175, 55, 0.28);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #00ff6688;
+  background: rgba(246, 214, 107, 0.65);
 }
 
-/* Glow utilities */
-.glow-green {
-  box-shadow: 0 0 30px rgba(0, 255, 102, 0.3), 0 0 60px rgba(0, 255, 102, 0.1);
-}
-.glow-green-text {
-  text-shadow: 0 0 20px rgba(0, 255, 102, 0.5);
-}
-.glow-border {
-  box-shadow: 0 0 0 1px rgba(0, 255, 102, 0.5), 0 0 20px rgba(0, 255, 102, 0.2);
+::selection {
+  background: rgba(212, 175, 55, 0.3);
+  color: #fff;
 }
 
-/* Particle canvas */
-#particles-canvas {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+/* ── Utilidades de brillo dorado ── */
+.glow-gold {
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.28), 0 0 70px rgba(212, 175, 55, 0.1);
+}
+.glow-gold-text {
+  text-shadow: 0 0 22px rgba(212, 175, 55, 0.45);
+}
+.gold-border {
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.45), 0 0 22px rgba(212, 175, 55, 0.18);
 }
 
-/* Floating animation */
+/* Línea divisoria dorada degradada */
+.gold-rule {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(212, 175, 55, 0.55),
+    transparent
+  );
+}
+
+/* Flotación suave */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }
 .float-animation {
   animation: float 4s ease-in-out infinite;
   will-change: transform;
 }
-
-/* Pulse green */
-@keyframes pulse-green {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 102, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(0, 255, 102, 0); }
+.float-slow {
+  animation: float 7s ease-in-out infinite;
+  will-change: transform;
 }
-.pulse-green {
-  animation: pulse-green 2s infinite;
+/* Tarjetas de métricas del hero: flotan suave y desfasadas entre sí */
+.float-card {
+  animation: float 5.5s ease-in-out infinite;
+  will-change: transform;
 }
 
-/* Infinite scroll */
+/* Pulso dorado */
+@keyframes pulse-gold {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 9px rgba(212, 175, 55, 0);
+  }
+}
+.pulse-gold {
+  animation: pulse-gold 2s infinite;
+}
+
+/* Carrusel infinito */
 @keyframes scroll-left {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 .scroll-left {
   animation: scroll-left 30s linear infinite;
@@ -102,20 +222,113 @@ body {
   backface-visibility: hidden;
 }
 
-/* Gradient text */
+/* Texto degradado dorado */
 .gradient-text {
-  background: linear-gradient(135deg, #00ff66, #00cc55, #ffffff);
+  background: linear-gradient(135deg, #9a7b1f 0%, #f6d66b 40%, #ead9a6 70%, #d4af37 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Card hover effect */
+/* Brillo que recorre el texto (loader / titulares) */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.gold-shimmer {
+  background: linear-gradient(
+    100deg,
+    #9a7b1f 0%,
+    #d4af37 30%,
+    #fff6d8 48%,
+    #f6d66b 60%,
+    #9a7b1f 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 2.6s linear infinite;
+}
+
+/* Balón girando del preloader */
+@keyframes spin-ball {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin-ball {
+  animation: spin-ball 1.6s linear infinite;
+  will-change: transform;
+}
+
+/* Anillo orbital del preloader */
+@keyframes ring-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+.ring-spin {
+  animation: ring-spin 3.2s linear infinite;
+}
+
+/* Barra de progreso del loader */
+@keyframes load-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+.load-bar {
+  animation: load-bar 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Hover de tarjetas */
 .card-hover {
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 255, 102, 0.1);
-  border-color: rgba(0, 255, 102, 0.3) !important;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.55), 0 0 34px rgba(212, 175, 55, 0.14);
+  border-color: rgba(212, 175, 55, 0.42) !important;
+}
+
+/* Textura sutil sobre fondos planos */
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.7) 1px, transparent 1px);
+  background-size: 3px 3px;
+}
+
+/* Reduce animaciones si el sistema lo pide */
+@media (prefers-reduced-motion: reduce) {
+  .float-animation,
+  .float-slow,
+  .float-card,
+  .scroll-left,
+  .pulse-gold,
+  .gold-shimmer,
+  .spin-ball,
+  .ring-spin {
+    animation: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
 }
