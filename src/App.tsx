@@ -780,8 +780,9 @@ function DemoGate({ onUnlock }: { onUnlock: () => void }) {
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function App() {
+  // Sin bloqueo, la visita entra directa pero pasando por la intro del balón.
   const [stage, setStage] = useState<"gate" | "loading" | "site">(
-    DEMO_LOCK_ENABLED ? "gate" : "site"
+    DEMO_LOCK_ENABLED ? "gate" : "loading"
   );
 
   return (
