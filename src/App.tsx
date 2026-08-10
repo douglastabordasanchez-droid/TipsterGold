@@ -690,8 +690,9 @@ function LoaderScreen({ onDone }: { onDone: () => void }) {
 }
 
 // ─── Demo access gate ───────────────────────────────────────────────────────
-// Set to false to remove the password gate once the client purchases the site.
-const DEMO_LOCK_ENABLED = true;
+// Desactivado: la página es de acceso libre. Poner en `true` para volver a
+// exigir la palabra clave (por ejemplo, si se quiere enseñar en privado).
+const DEMO_LOCK_ENABLED = false;
 const DEMO_PASSWORD = "PRUEBA";
 
 function DemoGate({ onUnlock }: { onUnlock: () => void }) {
