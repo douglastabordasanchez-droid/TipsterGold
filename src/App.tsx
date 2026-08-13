@@ -46,85 +46,6 @@ function Section({ children, className = "" }: { children: React.ReactNode; clas
   );
 }
 
-// ─── Media query reactiva ─────────────────────────────────────────────────────
-function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia(query);
-    const sync = () => setMatches(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, [query]);
-  return matches;
-}
-
-// ─── Carril de desplazamiento infinito ────────────────────────────────────────
-// Avanza solo, muy despacio, sobre una lista duplicada: al pasar la mitad
-// retrocede esa misma mitad, así el salto es invisible. Como por debajo es un
-// contenedor con scroll de verdad, el dedo manda: al tocarlo se detiene y
-// retoma un par de segundos después de soltar.
-function useInfiniteAutoScroll(
-  ref: React.RefObject<HTMLDivElement | null>,
-  enabled: boolean,
-  speed = 0.35,
-) {
-  useEffect(() => {
-    const el = ref.current;
-    if (!enabled || !el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    let raf = 0;
-    let hovering = false;
-    let lastTouch = 0;
-    // Chrome redondea `scrollLeft` al leerlo, así que sumar fracciones de píxel
-    // sobre el valor leído no avanza nunca: hay que llevar la cuenta aparte.
-    let pos = el.scrollLeft;
-    const touched = () => {
-      lastTouch = Date.now();
-    };
-
-    const tick = () => {
-      const idle = !hovering && Date.now() - lastTouch > 2000;
-      if (idle) {
-        const half = el.scrollWidth / 2;
-        pos += speed;
-        if (half > 0 && pos >= half) pos -= half;
-        el.scrollLeft = pos;
-      } else {
-        // Mientras el visitante desliza manda él; al soltar seguimos desde ahí.
-        pos = el.scrollLeft;
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-
-    const onEnter = () => {
-      hovering = true;
-    };
-    const onLeave = () => {
-      hovering = false;
-      lastTouch = Date.now();
-    };
-    el.addEventListener("pointerdown", touched);
-    el.addEventListener("touchstart", touched, { passive: true });
-    el.addEventListener("touchmove", touched, { passive: true });
-    el.addEventListener("wheel", touched, { passive: true });
-    el.addEventListener("mouseenter", onEnter);
-    el.addEventListener("mouseleave", onLeave);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      el.removeEventListener("pointerdown", touched);
-      el.removeEventListener("touchstart", touched);
-      el.removeEventListener("touchmove", touched);
-      el.removeEventListener("wheel", touched);
-      el.removeEventListener("mouseenter", onEnter);
-      el.removeEventListener("mouseleave", onLeave);
-    };
-  }, [ref, enabled, speed]);
-}
-
 // ─── Self-contained count-up hook (no external dependency) ────────────────────
 function useCountUp(end: number, active: boolean, duration = 2.5) {
   const [value, setValue] = useState(0);
@@ -1330,14 +1251,6 @@ function SiteContent() {
     if (bannerInView) v.play().catch(() => {});
     else v.pause();
   }, [bannerInView]);
-
-  // ─── Carrusel de planes ────────────────────────────────────────────────────
-  // Por debajo de lg es un carril deslizable que gira en bucle; desde lg pasa a
-  // rejilla fija de cuatro columnas y no se duplica nada.
-  const plansTrackRef = useRef<HTMLDivElement>(null);
-  const plansAreCarousel = useMediaQuery("(max-width: 1023.98px)");
-  useInfiniteAutoScroll(plansTrackRef, plansAreCarousel);
-  const plansTrack = plansAreCarousel ? [...groupPlans, ...groupPlans] : groupPlans;
 
   // ─── Background music player ───────────────────────────────────────────────
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -2743,17 +2656,18 @@ function SiteContent() {
                 otro deslizando en vez de bajar cuatro pantallas. Desde lg pasa
                 a rejilla de cuatro columnas. */}
             <div
-              ref={plansTrackRef}
               className="flex lg:grid lg:grid-cols-4 gap-4 items-stretch
                          overflow-x-auto lg:overflow-visible
+                         snap-x snap-mandatory lg:snap-none
                          -mx-4 px-4 pb-2 lg:mx-auto lg:px-0 lg:pb-0 max-w-6xl"
             >
-              {plansTrack.map((plan, i) => (
+              {groupPlans.map((plan) => (
                 <motion.div
-                  key={`${plan.name}-${i}`}
+                  key={plan.name}
                   variants={fadeUp}
                   className="rounded-2xl p-4 lg:p-5 flex flex-col relative overflow-hidden
-                             w-[72%] sm:w-[49%] md:w-[34%] lg:w-auto min-w-0 shrink-0"
+                             w-[72%] sm:w-[49%] md:w-[34%] lg:w-auto min-w-0 shrink-0
+                             snap-center"
                   style={{
                     background: plan.featured
                       ? `linear-gradient(160deg, ${hexToRgba(C.gold, 0.13)} 0%, rgba(10,10,10,0.97) 58%)`
