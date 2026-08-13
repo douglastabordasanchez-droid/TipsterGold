@@ -19,6 +19,9 @@ export const C = {
 
 export const GOLD_GRAD = "linear-gradient(135deg, #9a7b1f 0%, #f6d66b 45%, #d4af37 100%)";
 
+/** Verde metalizado de los CTA principales (mismo relieve que el dorado). */
+export const GREEN_GRAD = "linear-gradient(135deg, #0d6b42 0%, #6cf0a9 45%, #17a86a 100%)";
+
 /** Convierte un color hex a rgba con la opacidad indicada. */
 export function hexToRgba(hex: string, alpha: number) {
   const n = parseInt(hex.replace("#", ""), 16);
@@ -29,8 +32,11 @@ export function hexToRgba(hex: string, alpha: number) {
 }
 
 // Enlaces que comparten ambas páginas
-export const TELEGRAM_FREE = "https://t.me/Tgfutboltips";
-export const TELEGRAM_CONTACT = "https://t.me/TipsterGold_1";
+export const TELEGRAM_FREE = "https://t.me/+zVVw0a3H5JtmZjQx";
+export const TELEGRAM_CONTACT = "https://t.me/Tipstergold_1";
+/** Perfil auditado en METRIKA: la única fuente de las cifras de la web. */
+export const METRIKA_PROFILE = "https://profile.metrika.tips/tipstergold";
+export const SITE_URL = "https://www.tipstergold.com";
 export const SOCIAL = {
   instagram: "https://www.instagram.com/tgbrianfut_/",
   tiktok: "https://www.tiktok.com/@elprofetg",

@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef, type FormEvent, type CSSProperties } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { C, GOLD_GRAD, hexToRgba, TELEGRAM_FREE, TELEGRAM_CONTACT } from "./theme";
+import {
+  C,
+  GOLD_GRAD,
+  GREEN_GRAD,
+  hexToRgba,
+  TELEGRAM_FREE,
+  TELEGRAM_CONTACT,
+  METRIKA_PROFILE,
+  SITE_URL,
+} from "./theme";
 
 // Máscara de los retratos que "salen" de su tarjeta: difumina los laterales
 // y la base para que el recorte se funda con el fondo sin bordes rectos.
@@ -75,8 +84,14 @@ function AnimatedStat({
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
   const value = useCountUp(end, inView);
+  // Formato es-CO (miles con punto, decimales con coma) como el resto de la web.
   const display =
-    decimals > 0 ? value.toFixed(decimals) : Math.round(value).toLocaleString("en-US");
+    decimals > 0
+      ? value.toLocaleString("es-CO", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        })
+      : Math.round(value).toLocaleString("es-CO");
   return (
     <motion.div ref={ref} variants={fadeUp} className="text-center">
       <div
@@ -165,15 +180,6 @@ function IconUsers({ size = 22 }: IconProps) {
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-function IconInstagram({ size = 22 }: IconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...iconBase}>
-      <rect x="3" y="3" width="18" height="18" rx="5" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -267,10 +273,8 @@ const PHOTO_HERO = "/Brayan.png";
 const PHOTO_FREE = { src: "/brayan3.png", fallback: "/Brayan.png" };
 const PHOTO_ELITE = { src: "/brayan2.png", fallback: "/Brayan.png" };
 
-const musicTracks = [
-  { src: "/track-uefa-anthem.mp3", title: "UEFA Champions League Anthem" },
-  { src: "/track-mix-mundial.mp3", title: "Mix Mundial Fútbol 2022" },
-];
+// Única pista de fondo: el himno oficial de la Champions League, en bucle.
+const MUSIC_TRACK = { src: "/track-uefa-anthem.mp3", title: "Himno UEFA Champions League" };
 
 const featuredVideos = [
   { id: "FcNq4P1Ywjs", title: "Cómo ganar apuestas aplicando stake" },
@@ -308,57 +312,84 @@ const results = [
 
 const KUNFUPAY_BASE = "https://store.kunfupay.com/tipstergold-gsy9-mdnninaoocif/";
 
+// Precios leídos del checkout de KunFuPay. `oldPrice` es el precio tachado
+// que allí aparece antes del descuento; va null cuando ese producto no lo
+// tiene. Son cifras en COP convertidas por la pasarela, así que conviene
+// revisarlas cada cierto tiempo contra la tienda.
 const products = [
   {
     name: "Canal Tenis NBA MLB / Premium",
-    price: "105.559,76",
-    desc: "Predicciones diarias de tenis, NBA y MLB",
+    price: "93.047,10",
+    oldPrice: "103.385,67",
+    desc: "Predicciones diarias de tenis, NBA y MLB · membresía de 30 días",
     id: "69f2c6b96a7ca109978aba70",
     highlight: false,
   },
   {
-    name: "Grupo Fútbol Semanal",
-    price: "78.192,42",
+    name: "Grupo Elite Semanal",
+    price: "76.581,98",
+    oldPrice: null,
     desc: "Selecciones de fútbol de las principales ligas cada semana",
     id: "69f2c556a9cc1c2db63383a6",
     highlight: false,
   },
   {
-    name: "Grupo Semanal Tenis NBA MLB",
-    price: "39.096,21",
-    desc: "Acceso semanal a pronósticos de tenis, NBA y MLB",
-    id: "69f2c72df7deec8c214a4eef",
-    highlight: false,
-  },
-  {
     name: "Membresía Elite",
-    price: "195.481,04",
+    price: "225.916,82",
+    oldPrice: null,
     desc: "Acceso total a todos los deportes y estrategias privadas",
     id: "699873e74287554b8104726d",
     highlight: true,
   },
   {
-    name: "Membresía VIP",
-    price: "136.836,73",
-    desc: "Predicciones premium y soporte prioritario",
+    name: "Membresía Pro",
+    price: "137.847,55",
+    oldPrice: "153.163,95",
+    desc: "Pronósticos exclusivos de fútbol y soporte prioritario",
     id: "6998730808b11193969c1602",
     highlight: false,
   },
 ];
 
-// Los dos grupos que el cliente quiere destacar, con sus beneficios.
+// Los tres canales, en el orden de la web oficial: Élite arriba (nivel máximo),
+// Pro en medio (solo fútbol) y Semanal al final.
 // Precios e IDs de pago salen de `products`, así no se duplican datos.
 const groupPlans = [
   {
-    name: "Grupo VIP",
-    id: "6998730808b11193969c1602",
-    price: "136.836,73",
-    desc: "Pronósticos premium de fútbol con seguimiento diario y soporte prioritario.",
-    featured: false,
-    cta: "Acceder al VIP",
+    name: "Canal Élite",
+    id: "699873e74287554b8104726d",
+    price: "225.916,82",
+    oldPrice: null,
+    desc: "Acceso total a todos los deportes y a las estrategias privadas de nivel avanzado.",
+    featured: true,
+    badge: "Más top",
+    cta: "Acceder al Élite",
     benefits: [
-      "Pronósticos premium todos los días",
-      "Fútbol de las principales ligas",
+      "Todo lo de la Membresía Pro incluido",
+      "Acceso total a todos los deportes: tenis, NBA y MLB",
+      "Reto mensual o escaleras",
+      "Parleys y combinaciones",
+      "Predicciones personales y en vivo",
+      "Estadísticas verificadas",
+      "Acompañamiento directo",
+    ],
+  },
+  {
+    name: "Membresía Pro",
+    id: "6998730808b11193969c1602",
+    price: "137.847,55",
+    oldPrice: "153.163,95",
+    desc: "Enfoque exclusivo en fútbol, con seguimiento diario y soporte prioritario.",
+    featured: false,
+    badge: "Más elegido",
+    cta: "Acceder al Pro",
+    benefits: [
+      "Acceso a todos los pronósticos exclusivos de fútbol",
+      "Predicciones exclusivas",
+      "Pronósticos con IA",
+      "Estrategias privadas especializadas: escaleras, funbets y todas las dinámicas para fútbol",
+      "Capacitación grupal",
+      "Sorteos y regalos",
       "Gestión de banca profesional",
       "Alertas en tiempo real",
       "Soporte prioritario",
@@ -366,27 +397,25 @@ const groupPlans = [
     ],
   },
   {
-    name: "Grupo Élite",
-    id: "699873e74287554b8104726d",
-    price: "195.481,04",
-    desc: "Acceso total a todos los deportes y a las estrategias privadas.",
-    featured: true,
-    cta: "Acceder al Élite",
+    name: "Canal Semanal",
+    id: "69f2c556a9cc1c2db63383a6",
+    price: "76.581,98",
+    oldPrice: null,
+    desc: "Selecciones de fútbol de las principales ligas, semana a semana.",
+    featured: false,
+    badge: null,
+    cta: "Acceder al Semanal",
     benefits: [
-      "Todo lo del Grupo VIP incluido",
-      "Acceso total a todos los deportes",
-      "Tenis, NBA y MLB",
-      "Estrategias privadas",
-      "Combinadas exclusivas",
-      "Acompañamiento directo",
+      "Selecciones de fútbol de las principales ligas",
+      "Acceso semanal, sin permanencia",
+      "Cada pronóstico con su análisis previo",
+      "Alertas en tiempo real",
+      "Acceso por Telegram",
     ],
   },
 ];
 
-// Plan destacado, usado por la seccion Elite y por el CTA final
-const ELITE_PRODUCT = products.find((p) => p.highlight) ?? products[0];
-
-// "Otros servicios": lo que no son los grupos VIP/Elite, que ya salen arriba
+// "Otros servicios": lo que no son los canales Élite/Pro/Semanal, que ya salen arriba
 const otherServices = products.filter((p) => !groupPlans.some((g) => g.id === p.id));
 
 // ─── Textos legales ─────────────────────────────────────────────────────────
@@ -598,35 +627,37 @@ const legalDocs: LegalDoc[] = [
 
 // Métricas del hero. En escritorio flotan alrededor de la foto (posición en
 // left/right, nunca en transform); en móvil se listan quietas debajo.
+// Las dos cifras de rendimiento salen del perfil auditado en METRIKA
+// (METRIKA_PROFILE): no se tocan a mano, se sincronizan con esa fuente.
 const heroMetrics = [
   {
     icon: IconTarget,
-    value: "89%",
+    value: "65%",
     label: "Precisión histórica",
     pos: "top-[6%] left-[-16%]",
     delay: 0.8,
     floatDelay: "0s",
   },
   {
-    icon: IconInstagram,
-    value: "+19.000",
-    label: "Seguidores en IG",
+    icon: IconTelegram,
+    value: "+23.000",
+    label: "Usuarios en Telegram",
     pos: "top-[30%] right-[-14%]",
     delay: 0.95,
     floatDelay: "-1.4s",
   },
   {
     icon: IconChartBar,
-    value: "+42%",
-    label: "ROI mensual",
+    value: "+6,2%",
+    label: "Yield verificado",
     pos: "top-[58%] left-[-16%]",
     delay: 1.1,
     floatDelay: "-2.7s",
   },
   {
     icon: IconUsers,
-    value: "+10.000",
-    label: "Usuarios activos",
+    value: "+100.000",
+    label: "Usuarios en todas las redes",
     pos: "top-[72%] right-[-12%]",
     delay: 1.25,
     floatDelay: "-4s",
@@ -639,7 +670,7 @@ const navLinks: NavLink[] = [
   { label: "Inicio", hint: "Volver arriba", id: "hero" },
   { label: "Plan Gratis", hint: "Canal gratuito en Telegram", id: "gratuito" },
   { label: "Plan Elite", hint: "Acceso total a todos los deportes", id: "elite" },
-  { label: "Planes VIP y Élite", hint: "Compara y elige el tuyo", id: "grupos" },
+  { label: "Élite, Pro y Semanal", hint: "Compara y elige el tuyo", id: "grupos" },
   { label: "Resultados", hint: "Comprobantes verificados", id: "resultados" },
   { label: "Más servicios", hint: "Canales por deporte", id: "planes" },
   { label: "Blog", hint: "Aprende el método · se abre aparte", href: "/blog" },
@@ -1153,7 +1184,6 @@ function SiteContent() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const playerBoundsRef = useRef<HTMLDivElement>(null);
   const wantsPlayingRef = useRef(true);
-  const [trackIndex, setTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [volume, setVolume] = useState(0.1);
 
@@ -1189,15 +1219,6 @@ function SiteContent() {
     };
   }, []);
 
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-    a.load();
-    a.volume = volume;
-    if (wantsPlayingRef.current) a.play().catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trackIndex]);
-
   const togglePlay = () => {
     const a = audioRef.current;
     if (!a) return;
@@ -1216,9 +1237,6 @@ function SiteContent() {
     setVolume(v);
     if (audioRef.current) audioRef.current.volume = v;
   };
-
-  const switchTrack = () => setTrackIndex((i) => (i + 1) % musicTracks.length);
-  const onTrackEnded = () => setTrackIndex((i) => (i + 1) % musicTracks.length);
 
   return (
     <div style={{ background: C.black, minHeight: "100vh", overflowX: "hidden" }}>
@@ -1459,6 +1477,25 @@ function SiteContent() {
               transition={{ delay: 0.45 }}
               className="flex flex-col sm:flex-row flex-wrap justify-center md:justify-start gap-3"
             >
+              {/* 1) Canal gratis en verde metalizado, 2) grupos de pago en
+                  dorado, 3) auditoría en METRIKA. */}
+              <motion.a
+                href={TELEGRAM_FREE}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                className="px-6 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 whitespace-nowrap"
+                style={{
+                  background: GREEN_GRAD,
+                  color: C.black,
+                  fontFamily: "Poppins",
+                  boxShadow: `0 0 30px ${hexToRgba(C.win, 0.35)}, 0 8px 22px rgba(0,0,0,0.5)`,
+                }}
+              >
+                <IconTelegram size={16} />
+                Únete Gratis
+              </motion.a>
               <motion.button
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.96 }}
@@ -1471,30 +1508,15 @@ function SiteContent() {
                   boxShadow: `0 0 30px ${hexToRgba(C.gold, 0.35)}, 0 8px 22px rgba(0,0,0,0.5)`,
                 }}
               >
-                Comenzar Ahora →
+                Grupos Privados
               </motion.button>
               <motion.a
-                href={TELEGRAM_FREE}
+                href={METRIKA_PROFILE}
                 target="_blank"
                 rel="noopener noreferrer"
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                className="px-6 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 whitespace-nowrap"
-                style={{
-                  background: "rgba(34,158,217,0.14)",
-                  color: "#7fd0f5",
-                  border: "1px solid rgba(34,158,217,0.45)",
-                  fontFamily: "Poppins",
-                }}
-              >
-                <IconTelegram size={16} />
-                Únete Gratis
-              </motion.a>
-              <motion.button
                 whileHover={{ scale: 1.04, color: C.goldBright }}
                 whileTap={{ scale: 0.96 }}
-                onClick={() => scrollTo("resultados")}
-                className="px-6 py-3.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap"
+                className="px-6 py-3.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-center"
                 style={{
                   background: "transparent",
                   color: C.ivory,
@@ -1503,7 +1525,7 @@ function SiteContent() {
                 }}
               >
                 Ver Resultados
-              </motion.button>
+              </motion.a>
             </motion.div>
 
             {/* Prueba social */}
@@ -1534,7 +1556,7 @@ function SiteContent() {
                   ★★★★★
                 </div>
                 <p className="text-[11px]" style={{ color: C.muted }}>
-                  +10.000 usuarios satisfechos
+                  +100.000 usuarios en todas las redes sociales
                 </p>
               </div>
             </motion.div>
@@ -1664,7 +1686,8 @@ function SiteContent() {
           <Section>
             <motion.div variants={fadeUp} className="text-center mb-2">
               <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Cumpliendo Sueños, <span className="gradient-text">Ayudándote a Ti</span>
+                Tu pasión por el deporte{" "}
+                <span className="gradient-text">convertida en resultados</span>
               </h2>
               <p className="text-base" style={{ color: C.muted }}>
                 De estadio en estadio, viviendo el fútbol en primera fila
@@ -1835,7 +1858,7 @@ function SiteContent() {
                   className="text-xs font-bold tracking-[0.28em] uppercase mb-3"
                   style={{ color: C.gold, fontFamily: "Inter" }}
                 >
-                  100% Gratis
+                  Únete gratis
                 </div>
                 <h2
                   className="fs-h2 font-black mb-4 leading-[1.05]"
@@ -1844,18 +1867,21 @@ function SiteContent() {
                   CANAL <span className="gradient-text">GRATUITO</span>
                 </h2>
                 <p className="fs-body mb-7" style={{ color: C.muted }}>
-                  Entra sin costo a la comunidad oficial en Telegram. Recibe análisis, selecciones
-                  del día y contenido para que aprendas a jugar con estrategia, no con suerte.
+                  Entra sin costo a la comunidad oficial en Telegram. Cada día se publica una sola
+                  cosa: la predicción del día, la combinación del día o un vídeo con el análisis.
+                  Además, contenido educativo y gestión de banca.
                 </p>
 
+                {/* Solo lo que el canal gratuito entrega de verdad: una
+                    publicación diaria. Lo demás vive en los canales de pago. */}
                 <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3.5 mb-8">
                   {[
-                    "Análisis gratuitos",
-                    "Selecciones del día",
+                    "La predicción del día",
+                    "La combinación del día",
+                    "O un vídeo diario",
                     "Contenido educativo",
-                    "Gestión de banca para principiantes",
-                    "Acceso vía Telegram",
-                    "Comunidad organizada",
+                    "Gestión de banca",
+                    "Acceso gratuito vía Telegram",
                   ].map((item) => (
                     <li
                       key={item}
@@ -1943,7 +1969,7 @@ function SiteContent() {
                   boxShadow: `0 8px 26px ${hexToRgba(C.gold, 0.35)}`,
                 }}
               >
-                Más elegido
+                Más top
               </div>
 
               {/* Foto: sobresale por encima del borde de la tarjeta */}
@@ -1997,12 +2023,13 @@ function SiteContent() {
 
                 <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3.5 mb-7">
                   {[
-                    "Entradas exclusivas",
-                    "Acceso a todos los deportes",
-                    "Estrategias privadas",
-                    "Gestión profesional de banca",
-                    "Alertas en tiempo real",
-                    "Soporte prioritario",
+                    "Todo lo de la Membresía Pro incluido",
+                    "Acceso a todos los deportes: tenis, NBA y MLB",
+                    "Reto mensual o escaleras",
+                    "Parleys y combinaciones",
+                    "Predicciones personales y en vivo",
+                    "Estadísticas verificadas",
+                    "Acompañamiento directo",
                   ].map((item) => (
                     <li
                       key={item}
@@ -2017,29 +2044,11 @@ function SiteContent() {
                   ))}
                 </ul>
 
-                {/* Precio */}
-                <div className="flex items-end flex-wrap gap-x-3 gap-y-1 mb-6">
-                  <span
-                    className="text-[11px] font-bold tracking-[0.2em] uppercase pb-2"
-                    style={{ color: C.muted }}
-                  >
-                    Acceso por
-                  </span>
-                  <span
-                    className="text-4xl md:text-5xl font-black gradient-text leading-none"
-                    style={{ fontFamily: "Poppins" }}
-                  >
-                    ${ELITE_PRODUCT.price}
-                  </span>
-                  <span className="text-sm pb-1.5" style={{ color: C.muted }}>
-                    COP
-                  </span>
-                </div>
-
-                <motion.a
-                  href={`${KUNFUPAY_BASE}${ELITE_PRODUCT.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                {/* Sin precio aquí: el importe vive en la comparativa de
+                    planes, así que el botón solo lleva hasta allí. */}
+                <motion.button
+                  type="button"
+                  onClick={() => scrollTo("grupos")}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   className="w-full sm:w-auto self-start text-center px-10 py-4 rounded-2xl font-black text-sm md:text-base tracking-wide"
@@ -2051,7 +2060,7 @@ function SiteContent() {
                   }}
                 >
                   ACCEDER AL ELITE
-                </motion.a>
+                </motion.button>
 
                 <span
                   className="mt-4 self-start inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase"
@@ -2125,11 +2134,17 @@ function SiteContent() {
 
             {/* Resultados comprobados, sobre el vídeo del estadio */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 max-w-5xl mx-auto">
+              {/* Precisión y ROI replican el hero y el perfil de METRIKA. */}
               {[
-                { end: 89, suffix: "%", label: "Precisión Histórica" },
-                { end: 10000, suffix: "+", label: "Usuarios Activos" },
-                { end: 2847, suffix: "", label: "Partidos Analizados/mes" },
-                { end: 42, suffix: "%", label: "ROI Promedio Mensual" },
+                { end: 65, suffix: "%", label: "Precisión Histórica", decimals: 0 },
+                {
+                  end: 100000,
+                  suffix: "+",
+                  label: "Usuarios activos en todas las redes sociales",
+                  decimals: 0,
+                },
+                { end: 170, suffix: "+", label: "Pronósticos mensuales", decimals: 0 },
+                { end: 6.2, suffix: "%", label: "Yield Verificado", decimals: 1 },
               ].map((stat) => (
                 <motion.div
                   key={stat.label}
@@ -2140,7 +2155,12 @@ function SiteContent() {
                     border: `1px solid ${hexToRgba(C.gold, 0.22)}`,
                   }}
                 >
-                  <AnimatedStat end={stat.end} suffix={stat.suffix} label={stat.label} />
+                  <AnimatedStat
+                    end={stat.end}
+                    suffix={stat.suffix}
+                    label={stat.label}
+                    decimals={stat.decimals}
+                  />
                 </motion.div>
               ))}
             </div>
@@ -2430,7 +2450,7 @@ function SiteContent() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-5 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-5 max-w-6xl mx-auto items-stretch">
               {groupPlans.map((plan) => (
                 <motion.div
                   key={plan.name}
@@ -2444,12 +2464,12 @@ function SiteContent() {
                     boxShadow: plan.featured ? `0 0 46px ${hexToRgba(C.gold, 0.14)}` : "none",
                   }}
                 >
-                  {plan.featured && (
+                  {plan.badge && (
                     <div
                       className="absolute top-0 right-0 px-3.5 py-1.5 text-[10px] font-black tracking-[0.16em] uppercase rounded-bl-2xl"
                       style={{ background: GOLD_GRAD, color: C.black, fontFamily: "Poppins" }}
                     >
-                      Más elegido
+                      {plan.badge}
                     </div>
                   )}
 
@@ -2478,16 +2498,26 @@ function SiteContent() {
                   </ul>
 
                   <div className="mt-auto">
-                    <div className="flex items-end gap-2 mb-4">
-                      <span
-                        className="text-3xl font-black gradient-text leading-none"
-                        style={{ fontFamily: "Poppins" }}
-                      >
-                        ${plan.price}
-                      </span>
-                      <span className="text-xs pb-1" style={{ color: C.muted }}>
-                        COP
-                      </span>
+                    <div className="mb-4">
+                      {plan.oldPrice && (
+                        <div
+                          className="text-sm mb-1"
+                          style={{ color: C.dim, textDecoration: "line-through" }}
+                        >
+                          ${plan.oldPrice}
+                        </div>
+                      )}
+                      <div className="flex items-end gap-2">
+                        <span
+                          className="text-3xl font-black gradient-text leading-none"
+                          style={{ fontFamily: "Poppins" }}
+                        >
+                          ${plan.price}
+                        </span>
+                        <span className="text-xs pb-1" style={{ color: C.muted }}>
+                          COP
+                        </span>
+                      </div>
                     </div>
                     <motion.a
                       href={`${KUNFUPAY_BASE}${plan.id}`}
@@ -2531,7 +2561,7 @@ function SiteContent() {
                 Lo que Dice Nuestra <span className="gradient-text">Comunidad</span>
               </h2>
               <p style={{ color: C.muted }}>
-                Más de 10.000 personas ya transformaron su forma de jugar
+                Más de 100.000 personas ya transformaron su forma de jugar
               </p>
             </motion.div>
           </Section>
@@ -2604,8 +2634,8 @@ function SiteContent() {
                 Otros <span className="gradient-text">Servicios</span>
               </h2>
               <p style={{ color: C.muted }}>
-                Canales por deporte, aparte de los grupos VIP y Élite. Pago seguro, acceso
-                inmediato.
+                Canales por deporte, aparte de los canales Élite, Pro y Semanal. Pago seguro,
+                acceso inmediato.
               </p>
             </motion.div>
 
@@ -2649,6 +2679,14 @@ function SiteContent() {
                       {product.desc}
                     </p>
                     <p className="text-lg font-black" style={{ fontFamily: "Poppins", color: C.ivory }}>
+                      {product.oldPrice && (
+                        <span
+                          className="text-sm font-normal mr-2"
+                          style={{ color: C.dim, textDecoration: "line-through" }}
+                        >
+                          ${product.oldPrice}
+                        </span>
+                      )}
                       ${product.price}{" "}
                       <span className="text-xs font-normal" style={{ color: C.muted }}>
                         COP
@@ -2712,10 +2750,15 @@ function SiteContent() {
                 Empresa
               </h4>
               <ul className="space-y-2">
-                {["Blog"].map((item) => (
-                  <li key={item}>
+                {[
+                  { label: "Blog", href: "/blog" },
+                  { label: "Canal gratis en Telegram", href: TELEGRAM_FREE },
+                  { label: "Estadísticas verificadas", href: METRIKA_PROFILE },
+                  { label: "tipstergold.com", href: SITE_URL },
+                ].map((item) => (
+                  <li key={item.label}>
                     <a
-                      href="/blog"
+                      href={item.href}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm transition-colors"
@@ -2723,7 +2766,7 @@ function SiteContent() {
                       onMouseEnter={(e) => (e.currentTarget.style.color = C.goldBright)}
                       onMouseLeave={(e) => (e.currentTarget.style.color = C.muted)}
                     >
-                      {item}
+                      {item.label}
                     </a>
                   </li>
                 ))}
@@ -2996,7 +3039,7 @@ function SiteContent() {
       </motion.a>
 
       {/* ── MUSIC PLAYER ── */}
-      <audio ref={audioRef} src={musicTracks[trackIndex].src} onEnded={onTrackEnded} preload="auto" />
+      <audio ref={audioRef} src={MUSIC_TRACK.src} loop preload="auto" />
       {/* Móvil: solo un disco que enciende y apaga la música, abajo a la izquierda */}
       <motion.button
         type="button"
@@ -3056,7 +3099,7 @@ function SiteContent() {
           boxShadow: "0 6px 18px rgba(0,0,0,0.6)",
           cursor: "grab",
         }}
-        title={`${musicTracks[trackIndex].title} · arrástrame`}
+        title={`${MUSIC_TRACK.title} · arrástrame`}
       >
         {/* Asa de arrastre */}
         <span
@@ -3100,18 +3143,6 @@ function SiteContent() {
           className="w-10 md:w-12 h-1"
           style={{ accentColor: C.gold }}
         />
-
-        <button
-          type="button"
-          onClick={switchTrack}
-          aria-label="Cambiar canción"
-          className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{ background: hexToRgba(C.gold, 0.12), color: C.champagne }}
-        >
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M5 5v14l9-7-9-7zM15 5v14l9-7-9-7z" />
-          </svg>
-        </button>
       </motion.div>
       </div>
     </div>
