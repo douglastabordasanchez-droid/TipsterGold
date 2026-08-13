@@ -34,8 +34,6 @@ export function hexToRgba(hex: string, alpha: number) {
 // Enlaces que comparten ambas páginas
 export const TELEGRAM_FREE = "https://t.me/+zVVw0a3H5JtmZjQx";
 export const TELEGRAM_CONTACT = "https://t.me/Tipstergold_1";
-/** Perfil auditado en METRIKA: la única fuente de las cifras de la web. */
-export const METRIKA_PROFILE = "https://profile.metrika.tips/tipstergold";
 export const SITE_URL = "https://www.tipstergold.com";
 export const SOCIAL = {
   instagram: "https://www.instagram.com/tgbrianfut_/",

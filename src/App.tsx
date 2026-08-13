@@ -7,7 +7,6 @@ import {
   hexToRgba,
   TELEGRAM_FREE,
   TELEGRAM_CONTACT,
-  METRIKA_PROFILE,
   SITE_URL,
 } from "./theme";
 
@@ -45,6 +44,85 @@ function Section({ children, className = "" }: { children: React.ReactNode; clas
       {children}
     </motion.div>
   );
+}
+
+// ─── Media query reactiva ─────────────────────────────────────────────────────
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const sync = () => setMatches(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [query]);
+  return matches;
+}
+
+// ─── Carril de desplazamiento infinito ────────────────────────────────────────
+// Avanza solo, muy despacio, sobre una lista duplicada: al pasar la mitad
+// retrocede esa misma mitad, así el salto es invisible. Como por debajo es un
+// contenedor con scroll de verdad, el dedo manda: al tocarlo se detiene y
+// retoma un par de segundos después de soltar.
+function useInfiniteAutoScroll(
+  ref: React.RefObject<HTMLDivElement | null>,
+  enabled: boolean,
+  speed = 0.35,
+) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!enabled || !el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let raf = 0;
+    let hovering = false;
+    let lastTouch = 0;
+    // Chrome redondea `scrollLeft` al leerlo, así que sumar fracciones de píxel
+    // sobre el valor leído no avanza nunca: hay que llevar la cuenta aparte.
+    let pos = el.scrollLeft;
+    const touched = () => {
+      lastTouch = Date.now();
+    };
+
+    const tick = () => {
+      const idle = !hovering && Date.now() - lastTouch > 2000;
+      if (idle) {
+        const half = el.scrollWidth / 2;
+        pos += speed;
+        if (half > 0 && pos >= half) pos -= half;
+        el.scrollLeft = pos;
+      } else {
+        // Mientras el visitante desliza manda él; al soltar seguimos desde ahí.
+        pos = el.scrollLeft;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    const onEnter = () => {
+      hovering = true;
+    };
+    const onLeave = () => {
+      hovering = false;
+      lastTouch = Date.now();
+    };
+    el.addEventListener("pointerdown", touched);
+    el.addEventListener("touchstart", touched, { passive: true });
+    el.addEventListener("touchmove", touched, { passive: true });
+    el.addEventListener("wheel", touched, { passive: true });
+    el.addEventListener("mouseenter", onEnter);
+    el.addEventListener("mouseleave", onLeave);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener("pointerdown", touched);
+      el.removeEventListener("touchstart", touched);
+      el.removeEventListener("touchmove", touched);
+      el.removeEventListener("wheel", touched);
+      el.removeEventListener("mouseenter", onEnter);
+      el.removeEventListener("mouseleave", onLeave);
+    };
+  }, [ref, enabled, speed]);
 }
 
 // ─── Self-contained count-up hook (no external dependency) ────────────────────
@@ -271,7 +349,7 @@ const professionalGallery = [
 // Retratos del cliente (una foto distinta por sección, siempre con el rostro visible)
 const PHOTO_HERO = "/Brayan.png";
 const PHOTO_FREE = { src: "/brayan3.png", fallback: "/Brayan.png" };
-const PHOTO_ELITE = { src: "/brayan2.png", fallback: "/Brayan.png" };
+const PHOTO_FEATURED = { src: "/brayan2.png", fallback: "/Brayan.png" };
 
 // Única pista de fondo: el himno oficial de la Champions League, en bucle.
 const MUSIC_TRACK = { src: "/track-uefa-anthem.mp3", title: "Himno UEFA Champions League" };
@@ -310,66 +388,121 @@ const results = [
   },
 ];
 
+// Panel de rendimiento de la sección de resultados. Son las cifras propias de
+// TipsterGold y tienen que coincidir con las tarjetas del hero y del bloque de
+// estadísticas: si se cambia una, se cambian las tres.
+const PERFORMANCE = {
+  hitRate: 75,
+  yieldPct: 15.7,
+  tiles: [
+    { end: 170, label: "Pronósticos mensuales" },
+    { end: 23000, label: "Usuarios en Telegram" },
+    { end: 100000, label: "En todas las redes" },
+  ],
+};
+
+/** Cifra que sube contando, con separadores es-CO. */
+function CountUpValue({
+  end,
+  active,
+  decimals = 0,
+  prefix = "",
+  suffix = "",
+  className,
+  style,
+}: {
+  end: number;
+  active: boolean;
+  decimals?: number;
+  prefix?: string;
+  suffix?: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const value = useCountUp(end, active, 2.8);
+  const text =
+    decimals > 0
+      ? value.toLocaleString("es-CO", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        })
+      : Math.round(value).toLocaleString("es-CO");
+  return (
+    <span className={className} style={style}>
+      {prefix}
+      {text}
+      {suffix}
+    </span>
+  );
+}
+
+/** Aro que se llena mientras el porcentaje de dentro va subiendo. */
+function DonutStat({ pct, label, active }: { pct: number; label: string; active: boolean }) {
+  const r = 42;
+  const circumference = 2 * Math.PI * r;
+  const shown = useCountUp(pct, active, 2.8);
+  return (
+    <div className="flex flex-col items-center text-center">
+      <div className="relative">
+        <svg viewBox="0 0 104 104" className="w-[62px] h-[62px] sm:w-[84px] sm:h-[84px] -rotate-90">
+          <circle
+            cx="52"
+            cy="52"
+            r={r}
+            fill="none"
+            stroke={hexToRgba(C.gold, 0.14)}
+            strokeWidth="10"
+          />
+          <circle
+            cx="52"
+            cy="52"
+            r={r}
+            fill="none"
+            stroke={C.goldBright}
+            strokeWidth="10"
+            strokeLinecap="round"
+            strokeDasharray={`${(circumference * shown) / 100} ${circumference}`}
+          />
+        </svg>
+        <span
+          className="absolute inset-0 flex items-center justify-center text-base sm:text-xl font-black gradient-text"
+          style={{ fontFamily: "Poppins" }}
+        >
+          {Math.round(shown)}%
+        </span>
+      </div>
+      <p className="text-[10px] sm:text-[11px] mt-1.5 leading-tight" style={{ color: C.muted }}>
+        {label}
+      </p>
+    </div>
+  );
+}
+
 const KUNFUPAY_BASE = "https://store.kunfupay.com/tipstergold-gsy9-mdnninaoocif/";
 
-// Precios leídos del checkout de KunFuPay. `oldPrice` es el precio tachado
-// que allí aparece antes del descuento; va null cuando ese producto no lo
-// tiene. Son cifras en COP convertidas por la pasarela, así que conviene
-// revisarlas cada cierto tiempo contra la tienda.
-const products = [
-  {
-    name: "Canal Tenis NBA MLB / Premium",
-    price: "93.047,10",
-    oldPrice: "103.385,67",
-    desc: "Predicciones diarias de tenis, NBA y MLB · membresía de 30 días",
-    id: "69f2c6b96a7ca109978aba70",
-    highlight: false,
-  },
-  {
-    name: "Grupo Elite Semanal",
-    price: "76.581,98",
-    oldPrice: null,
-    desc: "Selecciones de fútbol de las principales ligas cada semana",
-    id: "69f2c556a9cc1c2db63383a6",
-    highlight: false,
-  },
-  {
-    name: "Membresía Elite",
-    price: "225.916,82",
-    oldPrice: null,
-    desc: "Acceso total a todos los deportes y estrategias privadas",
-    id: "699873e74287554b8104726d",
-    highlight: true,
-  },
-  {
-    name: "Membresía Pro",
-    price: "137.847,55",
-    oldPrice: "153.163,95",
-    desc: "Pronósticos exclusivos de fútbol y soporte prioritario",
-    id: "6998730808b11193969c1602",
-    highlight: false,
-  },
-];
-
-// Los tres canales, en el orden de la web oficial: Élite arriba (nivel máximo),
-// Pro en medio (solo fútbol) y Semanal al final.
-// Precios e IDs de pago salen de `products`, así no se duplican datos.
+// Catálogo completo de canales de pago, en el orden de la web oficial: Élite
+// (nivel máximo), Pro (solo fútbol), Semanal y el canal de otros deportes.
+// Precios leídos del checkout de KunFuPay; `oldPrice` es el precio tachado que
+// allí aparece antes del descuento y va null cuando ese producto no lo tiene.
+// Son cifras en COP convertidas por la pasarela, así que conviene revisarlas
+// cada cierto tiempo contra la tienda.
 const groupPlans = [
   {
     name: "Canal Élite",
     id: "699873e74287554b8104726d",
     price: "225.916,82",
     oldPrice: null,
-    desc: "Acceso total a todos los deportes y a las estrategias privadas de nivel avanzado.",
+    desc: "El nivel máximo en fútbol: todas las predicciones exclusivas y acompañamiento directo.",
     featured: true,
     badge: "Más top",
     cta: "Acceder al Élite",
     benefits: [
       "Todo lo de la Membresía Pro incluido",
-      "Acceso total a todos los deportes: tenis, NBA y MLB",
+      "Acceso completo a todas las predicciones individuales exclusivas",
       "Reto mensual o escaleras",
       "Parleys y combinaciones",
       "Predicciones personales y en vivo",
+      "Asesoría grupal mensual",
       "Estadísticas verificadas",
       "Acompañamiento directo",
     ],
@@ -379,21 +512,18 @@ const groupPlans = [
     id: "6998730808b11193969c1602",
     price: "137.847,55",
     oldPrice: "153.163,95",
-    desc: "Enfoque exclusivo en fútbol, con seguimiento diario y soporte prioritario.",
+    desc: "Enfoque exclusivo en fútbol, con seguimiento diario.",
     featured: false,
     badge: "Más elegido",
     cta: "Acceder al Pro",
     benefits: [
+      "Todo lo del canal gratuito incluido",
       "Acceso a todos los pronósticos exclusivos de fútbol",
       "Predicciones exclusivas",
       "Pronósticos con IA",
-      "Estrategias privadas especializadas: escaleras, funbets y todas las dinámicas para fútbol",
+      "Estrategias privadas: escaleras, funbets y todas las dinámicas de fútbol",
       "Capacitación grupal",
       "Sorteos y regalos",
-      "Gestión de banca profesional",
-      "Alertas en tiempo real",
-      "Soporte prioritario",
-      "Acceso por Telegram",
     ],
   },
   {
@@ -413,10 +543,28 @@ const groupPlans = [
       "Acceso por Telegram",
     ],
   },
+  {
+    name: "Canal Tenis NBA MLB",
+    id: "69f2c6b96a7ca109978aba70",
+    price: "93.047,10",
+    oldPrice: "103.385,67",
+    desc: "El canal de los otros deportes: tenis, NBA y MLB, con membresía de 30 días.",
+    featured: false,
+    badge: null,
+    cta: "Acceder al canal",
+    benefits: [
+      "Predicciones diarias de tenis, NBA y MLB",
+      "Membresía de 30 días",
+      "Cada pronóstico con su análisis previo",
+      "Alertas en tiempo real",
+      "Acceso por Telegram",
+    ],
+  },
 ];
 
-// "Otros servicios": lo que no son los canales Élite/Pro/Semanal, que ya salen arriba
-const otherServices = products.filter((p) => !groupPlans.some((g) => g.id === p.id));
+// La sección destacada de arriba y su tarjeta en la comparativa leen este
+// mismo objeto, así los beneficios no pueden quedar desincronizados.
+const FEATURED_PLAN = groupPlans.find((p) => p.name === "Membresía Pro") ?? groupPlans[0];
 
 // ─── Textos legales ─────────────────────────────────────────────────────────
 // Protegen a TipsterGold frente a reclamaciones por resultados, dejan claro
@@ -627,12 +775,12 @@ const legalDocs: LegalDoc[] = [
 
 // Métricas del hero. En escritorio flotan alrededor de la foto (posición en
 // left/right, nunca en transform); en móvil se listan quietas debajo.
-// Las dos cifras de rendimiento salen del perfil auditado en METRIKA
-// (METRIKA_PROFILE): no se tocan a mano, se sincronizan con esa fuente.
+// Las cifras de rendimiento las fija el cliente. Si cambian aquí, hay que
+// cambiarlas también en las tarjetas del bloque de estadísticas de más abajo.
 const heroMetrics = [
   {
     icon: IconTarget,
-    value: "65%",
+    value: "75%",
     label: "Precisión histórica",
     pos: "top-[6%] left-[-16%]",
     delay: 0.8,
@@ -648,7 +796,7 @@ const heroMetrics = [
   },
   {
     icon: IconChartBar,
-    value: "+6,2%",
+    value: "+15,7%",
     label: "Yield verificado",
     pos: "top-[58%] left-[-16%]",
     delay: 1.1,
@@ -669,10 +817,9 @@ type NavLink = { label: string; hint: string; id?: string; href?: string };
 const navLinks: NavLink[] = [
   { label: "Inicio", hint: "Volver arriba", id: "hero" },
   { label: "Plan Gratis", hint: "Canal gratuito en Telegram", id: "gratuito" },
-  { label: "Plan Elite", hint: "Acceso total a todos los deportes", id: "elite" },
-  { label: "Élite, Pro y Semanal", hint: "Compara y elige el tuyo", id: "grupos" },
+  { label: "Plan Pro", hint: "El más elegido, solo fútbol", id: "pro" },
+  { label: "Todos los canales", hint: "Compara precios y elige el tuyo", id: "grupos" },
   { label: "Resultados", hint: "Comprobantes verificados", id: "resultados" },
-  { label: "Más servicios", hint: "Canales por deporte", id: "planes" },
   { label: "Blog", hint: "Aprende el método · se abre aparte", href: "/blog" },
 ];
 
@@ -1113,6 +1260,10 @@ function SiteContent() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [selectedResult, setSelectedResult] = useState<(typeof results)[0] | null>(null);
+  const [resultsTab, setResultsTab] = useState<"estadisticas" | "comprobantes">("estadisticas");
+  // El aro y los números del panel se llenan contando al entrar en pantalla.
+  const dashRef = useRef<HTMLDivElement>(null);
+  const dashInView = useInView(dashRef, { margin: "-60px" });
   const [galleryPaused, setGalleryPaused] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
@@ -1179,6 +1330,14 @@ function SiteContent() {
     if (bannerInView) v.play().catch(() => {});
     else v.pause();
   }, [bannerInView]);
+
+  // ─── Carrusel de planes ────────────────────────────────────────────────────
+  // Por debajo de lg es un carril deslizable que gira en bucle; desde lg pasa a
+  // rejilla fija de cuatro columnas y no se duplica nada.
+  const plansTrackRef = useRef<HTMLDivElement>(null);
+  const plansAreCarousel = useMediaQuery("(max-width: 1023.98px)");
+  useInfiniteAutoScroll(plansTrackRef, plansAreCarousel);
+  const plansTrack = plansAreCarousel ? [...groupPlans, ...groupPlans] : groupPlans;
 
   // ─── Background music player ───────────────────────────────────────────────
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -1510,10 +1669,9 @@ function SiteContent() {
               >
                 Grupos Privados
               </motion.button>
-              <motion.a
-                href={METRIKA_PROFILE}
-                target="_blank"
-                rel="noopener noreferrer"
+              <motion.button
+                type="button"
+                onClick={() => scrollTo("resultados")}
                 whileHover={{ scale: 1.04, color: C.goldBright }}
                 whileTap={{ scale: 0.96 }}
                 className="px-6 py-3.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-center"
@@ -1525,7 +1683,7 @@ function SiteContent() {
                 }}
               >
                 Ver Resultados
-              </motion.a>
+              </motion.button>
             </motion.div>
 
             {/* Prueba social */}
@@ -1867,20 +2025,20 @@ function SiteContent() {
                   CANAL <span className="gradient-text">GRATUITO</span>
                 </h2>
                 <p className="fs-body mb-7" style={{ color: C.muted }}>
-                  Entra sin costo a la comunidad oficial en Telegram. Cada día se publica una sola
-                  cosa: la predicción del día, la combinación del día o un vídeo con el análisis.
+                  Entra sin costo a la comunidad oficial en Telegram. Cada día recibes una
+                  predicción, que puede ser una combinación, un parley o un pronóstico individual.
                   Además, contenido educativo y gestión de banca.
                 </p>
 
-                {/* Solo lo que el canal gratuito entrega de verdad: una
-                    publicación diaria. Lo demás vive en los canales de pago. */}
+                {/* Lo que el canal gratuito entrega de verdad. Lo demás vive en
+                    los canales de pago. */}
                 <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3.5 mb-8">
                   {[
-                    "La predicción del día",
-                    "La combinación del día",
-                    "O un vídeo diario",
+                    "Predicción del día",
+                    "Vídeos de formación y comunicativos",
+                    "Parley los fines de semana",
                     "Contenido educativo",
-                    "Gestión de banca",
+                    "Estadísticas verificadas mensuales",
                     "Acceso gratuito vía Telegram",
                   ].map((item) => (
                     <li
@@ -1946,7 +2104,7 @@ function SiteContent() {
       </section>
 
       {/* ── MEMBRESÍA ELITE (foto brayan2) ── */}
-      <section id="elite" className="sec-pad" style={{ background: C.black }}>
+      <section id="pro" className="sec-pad" style={{ background: C.black }}>
         <div className="wrap">
           <Section>
             <motion.div
@@ -1969,7 +2127,7 @@ function SiteContent() {
                   boxShadow: `0 8px 26px ${hexToRgba(C.gold, 0.35)}`,
                 }}
               >
-                Más top
+                {FEATURED_PLAN.badge}
               </div>
 
               {/* Foto: sobresale por encima del borde de la tarjeta */}
@@ -1982,9 +2140,9 @@ function SiteContent() {
                   }}
                 />
                 <PhotoWithFallback
-                  src={PHOTO_ELITE.src}
-                  fallback={PHOTO_ELITE.fallback}
-                  alt="Brayan · Membresía Elite TipsterGold"
+                  src={PHOTO_FEATURED.src}
+                  fallback={PHOTO_FEATURED.fallback}
+                  alt="Brayan · Membresía Pro TipsterGold"
                   className="absolute bottom-0 left-1/2 -translate-x-1/2 w-auto max-w-none object-contain"
                   style={{
                     height: "107%",
@@ -2008,29 +2166,21 @@ function SiteContent() {
                     fontFamily: "Inter",
                   }}
                 >
-                  Acceso Premium
+                  Planes privados
                 </div>
                 <h2
                   className="fs-h2 font-black mb-4 leading-[1.05]"
                   style={{ fontFamily: "Poppins" }}
                 >
-                  MEMBRESÍA <span className="gradient-text">ELITE</span>
+                  MEMBRESÍA <span className="gradient-text">PRO</span>
                 </h2>
                 <p className="fs-body mb-7" style={{ color: C.muted }}>
-                  Para quienes quieren seguir mis mejores entradas, con acceso total a todos los
-                  deportes, estrategias privadas y acompañamiento directo.
+                  {FEATURED_PLAN.desc}
                 </p>
 
+                {/* Misma lista que la tarjeta Pro de la comparativa. */}
                 <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3.5 mb-7">
-                  {[
-                    "Todo lo de la Membresía Pro incluido",
-                    "Acceso a todos los deportes: tenis, NBA y MLB",
-                    "Reto mensual o escaleras",
-                    "Parleys y combinaciones",
-                    "Predicciones personales y en vivo",
-                    "Estadísticas verificadas",
-                    "Acompañamiento directo",
-                  ].map((item) => (
+                  {FEATURED_PLAN.benefits.map((item) => (
                     <li
                       key={item}
                       className="flex items-center gap-2.5 text-sm md:text-[15px]"
@@ -2059,7 +2209,7 @@ function SiteContent() {
                     boxShadow: `0 12px 38px ${hexToRgba(C.gold, 0.35)}`,
                   }}
                 >
-                  ACCEDER AL ELITE
+                  ACCEDER AL PRO
                 </motion.button>
 
                 <span
@@ -2134,9 +2284,9 @@ function SiteContent() {
 
             {/* Resultados comprobados, sobre el vídeo del estadio */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 max-w-5xl mx-auto">
-              {/* Precisión y ROI replican el hero y el perfil de METRIKA. */}
+              {/* Precisión y yield: mismas cifras que las tarjetas del hero. */}
               {[
-                { end: 65, suffix: "%", label: "Precisión Histórica", decimals: 0 },
+                { end: 75, suffix: "%", label: "Precisión Histórica", decimals: 0 },
                 {
                   end: 100000,
                   suffix: "+",
@@ -2144,7 +2294,7 @@ function SiteContent() {
                   decimals: 0,
                 },
                 { end: 170, suffix: "+", label: "Pronósticos mensuales", decimals: 0 },
-                { end: 6.2, suffix: "%", label: "Yield Verificado", decimals: 1 },
+                { end: 15.7, suffix: "%", label: "Yield Verificado", decimals: 1 },
               ].map((stat) => (
                 <motion.div
                   key={stat.label}
@@ -2308,6 +2458,144 @@ function SiteContent() {
               <p style={{ color: C.muted }}>Comprobantes reales de ganancias de nuestra comunidad</p>
             </motion.div>
 
+            {/* Dos vistas: el mini dashboard y los comprobantes. */}
+            <motion.div variants={fadeUp} className="flex justify-center mb-6 md:mb-8">
+              <div
+                className="inline-flex p-1 rounded-2xl"
+                style={{
+                  background: "rgba(10,10,10,0.9)",
+                  border: `1px solid ${hexToRgba(C.gold, 0.2)}`,
+                }}
+              >
+                {(
+                  [
+                    ["estadisticas", "Estadísticas"],
+                    ["comprobantes", "Comprobantes"],
+                  ] as const
+                ).map(([key, label]) => {
+                  const active = resultsTab === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setResultsTab(key)}
+                      className="px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[12px] sm:text-[13px] font-bold transition-all whitespace-nowrap"
+                      style={{
+                        background: active ? GOLD_GRAD : "transparent",
+                        color: active ? C.black : C.muted,
+                        fontFamily: "Poppins",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+
+            {resultsTab === "estadisticas" ? (
+            <motion.div
+              ref={dashRef}
+              variants={fadeUp}
+              className="max-w-3xl mx-auto rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-7"
+              style={{
+                background: `linear-gradient(160deg, ${hexToRgba(C.gold, 0.1)} 0%, rgba(10,10,10,0.97) 60%)`,
+                border: `1px solid ${hexToRgba(C.gold, 0.28)}`,
+              }}
+            >
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <span
+                  className="inline-block px-2.5 py-1 rounded-md text-[9px] sm:text-[10px] font-black tracking-[0.18em] uppercase"
+                  style={{
+                    background: hexToRgba(C.gold, 0.14),
+                    border: `1px solid ${hexToRgba(C.gold, 0.34)}`,
+                    color: C.champagne,
+                  }}
+                >
+                  Rendimiento
+                </span>
+                <span className="text-[10px] sm:text-xs" style={{ color: C.muted }}>
+                  Fútbol · seguimiento continuo
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-2 sm:mb-4">
+                <div
+                  className="rounded-xl sm:rounded-2xl px-4 py-4 sm:px-5 sm:py-5 flex items-center justify-center"
+                  style={{
+                    background: "rgba(8,8,8,0.72)",
+                    border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
+                  }}
+                >
+                  <DonutStat
+                    pct={PERFORMANCE.hitRate}
+                    label="Precisión histórica"
+                    active={dashInView}
+                  />
+                </div>
+
+                <div
+                  className="rounded-xl sm:rounded-2xl px-4 py-4 sm:px-5 sm:py-5 flex flex-col items-center justify-center text-center"
+                  style={{
+                    background: "rgba(8,8,8,0.72)",
+                    border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
+                  }}
+                >
+                  <CountUpValue
+                    end={PERFORMANCE.yieldPct}
+                    active={dashInView}
+                    decimals={1}
+                    prefix="+"
+                    suffix="%"
+                    className="text-2xl sm:text-3xl font-black leading-none mb-1"
+                    style={{ fontFamily: "Poppins", color: C.win }}
+                  />
+                  <span className="text-[10px] sm:text-[11px] mb-2.5" style={{ color: C.muted }}>
+                    Yield verificado
+                  </span>
+                  <div
+                    className="w-full h-1.5 rounded-full overflow-hidden"
+                    style={{ background: hexToRgba(C.gold, 0.12) }}
+                  >
+                    <motion.div
+                      className="h-full rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: dashInView ? "100%" : 0 }}
+                      transition={{ duration: 2.8, ease: easeOut }}
+                      style={{ background: GOLD_GRAD }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {PERFORMANCE.tiles.map((t) => (
+                  <div
+                    key={t.label}
+                    className="rounded-lg sm:rounded-xl px-1.5 py-3 sm:px-3 sm:py-4 text-center"
+                    style={{
+                      background: "rgba(8,8,8,0.72)",
+                      border: `1px solid ${hexToRgba(C.gold, 0.16)}`,
+                    }}
+                  >
+                    <CountUpValue
+                      end={t.end}
+                      active={dashInView}
+                      prefix="+"
+                      className="block text-sm sm:text-xl font-black gradient-text leading-none mb-1"
+                      style={{ fontFamily: "Poppins" }}
+                    />
+                    <p
+                      className="text-[9px] sm:text-[11px] leading-tight"
+                      style={{ color: C.muted }}
+                    >
+                      {t.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+            ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {results.map((r, i) => (
                 <motion.div
@@ -2349,6 +2637,7 @@ function SiteContent() {
                 </motion.div>
               ))}
             </div>
+            )}
           </Section>
         </div>
       </section>
@@ -2450,12 +2739,21 @@ function SiteContent() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-5 max-w-6xl mx-auto items-stretch">
-              {groupPlans.map((plan) => (
+            {/* Móvil: carril horizontal con anclaje, así se pasa de un canal a
+                otro deslizando en vez de bajar cuatro pantallas. Desde lg pasa
+                a rejilla de cuatro columnas. */}
+            <div
+              ref={plansTrackRef}
+              className="flex lg:grid lg:grid-cols-4 gap-4 items-stretch
+                         overflow-x-auto lg:overflow-visible
+                         -mx-4 px-4 pb-2 lg:mx-auto lg:px-0 lg:pb-0 max-w-6xl"
+            >
+              {plansTrack.map((plan, i) => (
                 <motion.div
-                  key={plan.name}
+                  key={`${plan.name}-${i}`}
                   variants={fadeUp}
-                  className="rounded-3xl p-6 md:p-8 flex flex-col relative overflow-hidden"
+                  className="rounded-2xl p-4 lg:p-5 flex flex-col relative overflow-hidden
+                             w-[72%] sm:w-[49%] md:w-[34%] lg:w-auto min-w-0 shrink-0"
                   style={{
                     background: plan.featured
                       ? `linear-gradient(160deg, ${hexToRgba(C.gold, 0.13)} 0%, rgba(10,10,10,0.97) 58%)`
@@ -2466,7 +2764,7 @@ function SiteContent() {
                 >
                   {plan.badge && (
                     <div
-                      className="absolute top-0 right-0 px-3.5 py-1.5 text-[10px] font-black tracking-[0.16em] uppercase rounded-bl-2xl"
+                      className="absolute top-0 right-0 px-3 py-1 text-[9px] font-black tracking-[0.16em] uppercase rounded-bl-xl"
                       style={{ background: GOLD_GRAD, color: C.black, fontFamily: "Poppins" }}
                     >
                       {plan.badge}
@@ -2474,23 +2772,27 @@ function SiteContent() {
                   )}
 
                   <h3
-                    className="text-2xl font-black mb-2 pr-24"
+                    className="text-base lg:text-lg font-black mb-1.5 pr-20"
                     style={{ fontFamily: "Poppins", color: plan.featured ? undefined : C.ivory }}
                   >
                     {plan.featured ? <span className="gradient-text">{plan.name}</span> : plan.name}
                   </h3>
-                  <p className="fs-body mb-6" style={{ color: C.muted }}>
+                  <p className="text-[12px] leading-snug mb-3.5" style={{ color: C.muted }}>
                     {plan.desc}
                   </p>
 
-                  <ul className="space-y-3 mb-7">
+                  <ul className="space-y-1.5 mb-4">
                     {plan.benefits.map((b) => (
-                      <li key={b} className="flex items-start gap-2.5 text-sm" style={{ color: C.ivory }}>
+                      <li
+                        key={b}
+                        className="flex items-start gap-2 text-[12px] leading-snug"
+                        style={{ color: C.ivory }}
+                      >
                         <span
-                          className="mt-0.5 flex-shrink-0"
+                          className="mt-[3px] flex-shrink-0"
                           style={{ color: plan.featured ? C.goldBright : C.gold }}
                         >
-                          <IconCheck size={15} />
+                          <IconCheck size={12} />
                         </span>
                         {b}
                       </li>
@@ -2498,23 +2800,23 @@ function SiteContent() {
                   </ul>
 
                   <div className="mt-auto">
-                    <div className="mb-4">
+                    <div className="mb-3">
                       {plan.oldPrice && (
                         <div
-                          className="text-sm mb-1"
+                          className="text-xs"
                           style={{ color: C.dim, textDecoration: "line-through" }}
                         >
                           ${plan.oldPrice}
                         </div>
                       )}
-                      <div className="flex items-end gap-2">
+                      <div className="flex items-end gap-1.5">
                         <span
-                          className="text-3xl font-black gradient-text leading-none"
+                          className="text-xl font-black gradient-text leading-none"
                           style={{ fontFamily: "Poppins" }}
                         >
                           ${plan.price}
                         </span>
-                        <span className="text-xs pb-1" style={{ color: C.muted }}>
+                        <span className="text-[10px] pb-0.5" style={{ color: C.muted }}>
                           COP
                         </span>
                       </div>
@@ -2525,7 +2827,7 @@ function SiteContent() {
                       rel="noopener noreferrer"
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
-                      className="block w-full text-center py-3.5 rounded-xl font-black text-sm tracking-wide"
+                      className="block w-full text-center py-2.5 rounded-xl font-black text-[12px] tracking-wide"
                       style={{
                         background: plan.featured ? GOLD_GRAD : "transparent",
                         color: plan.featured ? C.black : C.goldBright,
@@ -2541,7 +2843,15 @@ function SiteContent() {
               ))}
             </div>
 
-            <motion.p variants={fadeUp} className="text-center text-xs mt-8" style={{ color: C.dim }}>
+            <motion.p
+              variants={fadeUp}
+              className="lg:hidden text-center text-[11px] mt-3"
+              style={{ color: C.gold }}
+            >
+              Desliza para ver los {groupPlans.length} canales →
+            </motion.p>
+
+            <motion.p variants={fadeUp} className="text-center text-xs mt-6" style={{ color: C.dim }}>
               Pagos procesados de forma segura por KunFuPay · Sin permanencia
             </motion.p>
           </Section>
@@ -2625,101 +2935,6 @@ function SiteContent() {
         </div>
       </section>
 
-      {/* ── PRODUCTOS ── */}
-      <section id="planes" className="sec-pad" style={{ background: C.panel }}>
-        <div className="max-w-3xl mx-auto px-4 md:px-6">
-          <Section>
-            <motion.div variants={fadeUp} className="text-center mb-8 md:mb-14">
-              <h2 className="fs-h2 font-black mb-3" style={{ fontFamily: "Poppins" }}>
-                Otros <span className="gradient-text">Servicios</span>
-              </h2>
-              <p style={{ color: C.muted }}>
-                Canales por deporte, aparte de los canales Élite, Pro y Semanal. Pago seguro,
-                acceso inmediato.
-              </p>
-            </motion.div>
-
-            <div className="space-y-4">
-              {otherServices.map((product) => (
-                <motion.div
-                  key={product.id}
-                  variants={fadeUp}
-                  className="card-hover rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden"
-                  style={{
-                    background: product.highlight
-                      ? `linear-gradient(135deg, ${hexToRgba(C.gold, 0.14)} 0%, rgba(10,10,10,0.97) 60%)`
-                      : "rgba(10,10,10,0.94)",
-                    border: product.highlight
-                      ? `1px solid ${hexToRgba(C.gold, 0.5)}`
-                      : `1px solid ${hexToRgba(C.gold, 0.14)}`,
-                    boxShadow: product.highlight
-                      ? `0 0 40px ${hexToRgba(C.gold, 0.12)}`
-                      : "none",
-                  }}
-                >
-                  {product.highlight && (
-                    <div
-                      className="absolute top-0 right-0 px-3 py-1 text-[10px] font-black tracking-widest uppercase rounded-bl-xl"
-                      style={{ background: GOLD_GRAD, color: C.black, fontFamily: "Poppins" }}
-                    >
-                      Más elegido
-                    </div>
-                  )}
-                  <div>
-                    <h3
-                      className="fs-lead font-bold mb-1 pr-24 sm:pr-0"
-                      style={{
-                        fontFamily: "Poppins",
-                        color: product.highlight ? C.goldBright : C.ivory,
-                      }}
-                    >
-                      {product.name}
-                    </h3>
-                    <p className="text-xs md:text-sm mb-2" style={{ color: C.muted }}>
-                      {product.desc}
-                    </p>
-                    <p className="text-lg font-black" style={{ fontFamily: "Poppins", color: C.ivory }}>
-                      {product.oldPrice && (
-                        <span
-                          className="text-sm font-normal mr-2"
-                          style={{ color: C.dim, textDecoration: "line-through" }}
-                        >
-                          ${product.oldPrice}
-                        </span>
-                      )}
-                      ${product.price}{" "}
-                      <span className="text-xs font-normal" style={{ color: C.muted }}>
-                        COP
-                      </span>
-                    </p>
-                  </div>
-                  <motion.a
-                    href={`${KUNFUPAY_BASE}${product.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.96 }}
-                    className="shrink-0 text-center px-6 py-3 rounded-xl font-bold text-sm transition-all"
-                    style={{
-                      background: product.highlight ? GOLD_GRAD : "transparent",
-                      color: product.highlight ? C.black : C.goldBright,
-                      border: product.highlight ? "none" : `1px solid ${hexToRgba(C.gold, 0.4)}`,
-                      fontFamily: "Poppins",
-                      boxShadow: product.highlight ? `0 0 22px ${hexToRgba(C.gold, 0.3)}` : "none",
-                    }}
-                  >
-                    Ver Producto
-                  </motion.a>
-                </motion.div>
-              ))}
-            </div>
-
-            <motion.p variants={fadeUp} className="text-center text-xs mt-8" style={{ color: C.dim }}>
-              Pagos procesados de forma segura por KunFuPay
-            </motion.p>
-          </Section>
-        </div>
-      </section>
 
       {/* ── FOOTER ── */}
       <footer
@@ -2753,7 +2968,6 @@ function SiteContent() {
                 {[
                   { label: "Blog", href: "/blog" },
                   { label: "Canal gratis en Telegram", href: TELEGRAM_FREE },
-                  { label: "Estadísticas verificadas", href: METRIKA_PROFILE },
                   { label: "tipstergold.com", href: SITE_URL },
                 ].map((item) => (
                   <li key={item.label}>
