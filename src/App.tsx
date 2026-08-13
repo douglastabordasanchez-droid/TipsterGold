@@ -7,6 +7,7 @@ import {
   hexToRgba,
   TELEGRAM_FREE,
   TELEGRAM_CONTACT,
+  METRIKA_PROFILE,
   SITE_URL,
 } from "./theme";
 
@@ -388,16 +389,24 @@ const results = [
   },
 ];
 
-// Panel de rendimiento de la sección de resultados. Son las cifras propias de
-// TipsterGold y tienen que coincidir con las tarjetas del hero y del bloque de
-// estadísticas: si se cambia una, se cambian las tres.
-const PERFORMANCE = {
-  hitRate: 75,
-  yieldPct: 15.7,
+// Bankroll público auditado en METRIKA. Estas cifras son la fuente de verdad:
+// el acierto y el yield se repiten en las tarjetas del hero y del bloque de
+// estadísticas, así que si cambian aquí hay que cambiarlas también allí.
+// El perfil no se puede incrustar (responde `X-Frame-Options: SAMEORIGIN`),
+// por eso se replican y se enlaza el original.
+const METRIKA_SNAPSHOT = {
+  bankroll: "TIPS FUTBOL PREMIUM",
+  updated: "12 de agosto de 2026",
+  hitRate: 66,
+  yieldPct: 6.4,
+  opening: "$25.000",
+  balance: "$55.626",
+  profit: "+$30.626",
+  growthPct: 122, // (55.626 - 25.000) / 25.000
   tiles: [
-    { end: 170, label: "Pronósticos mensuales" },
-    { end: 23000, label: "Usuarios en Telegram" },
-    { end: 100000, label: "En todas las redes" },
+    { end: 976, label: "Apuestas", prefix: "" },
+    { end: 123, label: "Unidades", prefix: "+", suffix: "u" },
+    { end: 1.58, label: "Cuota media", prefix: "", decimals: 2 },
   ],
 };
 
@@ -775,13 +784,13 @@ const legalDocs: LegalDoc[] = [
 
 // Métricas del hero. En escritorio flotan alrededor de la foto (posición en
 // left/right, nunca en transform); en móvil se listan quietas debajo.
-// Las cifras de rendimiento las fija el cliente. Si cambian aquí, hay que
-// cambiarlas también en las tarjetas del bloque de estadísticas de más abajo.
+// El acierto y el yield salen del perfil auditado (METRIKA_SNAPSHOT): si se
+// actualizan allí, hay que actualizarlos aquí y en el bloque de estadísticas.
 const heroMetrics = [
   {
     icon: IconTarget,
-    value: "75%",
-    label: "Precisión histórica",
+    value: "66%",
+    label: "Acierto verificado",
     pos: "top-[6%] left-[-16%]",
     delay: 0.8,
     floatDelay: "0s",
@@ -796,7 +805,7 @@ const heroMetrics = [
   },
   {
     icon: IconChartBar,
-    value: "+15,7%",
+    value: "+6,4%",
     label: "Yield verificado",
     pos: "top-[58%] left-[-16%]",
     delay: 1.1,
@@ -2284,9 +2293,9 @@ function SiteContent() {
 
             {/* Resultados comprobados, sobre el vídeo del estadio */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 max-w-5xl mx-auto">
-              {/* Precisión y yield: mismas cifras que las tarjetas del hero. */}
+              {/* Acierto y yield: mismas cifras que el hero y que METRIKA. */}
               {[
-                { end: 75, suffix: "%", label: "Precisión Histórica", decimals: 0 },
+                { end: 66, suffix: "%", label: "Acierto Verificado", decimals: 0 },
                 {
                   end: 100000,
                   suffix: "+",
@@ -2294,7 +2303,7 @@ function SiteContent() {
                   decimals: 0,
                 },
                 { end: 170, suffix: "+", label: "Pronósticos mensuales", decimals: 0 },
-                { end: 15.7, suffix: "%", label: "Yield Verificado", decimals: 1 },
+                { end: 6.4, suffix: "%", label: "Yield Verificado", decimals: 1 },
               ].map((stat) => (
                 <motion.div
                   key={stat.label}
@@ -2503,20 +2512,42 @@ function SiteContent() {
                 border: `1px solid ${hexToRgba(C.gold, 0.28)}`,
               }}
             >
-              <div className="flex items-center justify-between gap-3 mb-4">
-                <span
-                  className="inline-block px-2.5 py-1 rounded-md text-[9px] sm:text-[10px] font-black tracking-[0.18em] uppercase"
-                  style={{
-                    background: hexToRgba(C.gold, 0.14),
-                    border: `1px solid ${hexToRgba(C.gold, 0.34)}`,
-                    color: C.champagne,
-                  }}
-                >
-                  Rendimiento
-                </span>
-                <span className="text-[10px] sm:text-xs" style={{ color: C.muted }}>
-                  Fútbol · seguimiento continuo
-                </span>
+              {/* Cabecera: sello de tipster certificado y bankroll auditado */}
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[9px] sm:text-[10px] font-black tracking-[0.16em] uppercase"
+                    style={{
+                      background: hexToRgba(C.win, 0.14),
+                      border: `1px solid ${hexToRgba(C.win, 0.45)}`,
+                      color: C.win,
+                    }}
+                  >
+                    <IconCheck size={11} />
+                    Tipster certificado
+                  </span>
+                  <span
+                    className="hidden sm:inline-block px-2.5 py-1 rounded-md text-[10px] font-black tracking-[0.16em] uppercase"
+                    style={{
+                      background: hexToRgba(C.gold, 0.14),
+                      border: `1px solid ${hexToRgba(C.gold, 0.34)}`,
+                      color: C.champagne,
+                    }}
+                  >
+                    METRIKA · Pro Tipster
+                  </span>
+                </div>
+                <div className="text-right">
+                  <p
+                    className="text-lg sm:text-xl font-black leading-none"
+                    style={{ fontFamily: "Poppins", color: C.win }}
+                  >
+                    {METRIKA_SNAPSHOT.profit}
+                  </p>
+                  <p className="text-[10px] sm:text-[11px]" style={{ color: C.muted }}>
+                    {METRIKA_SNAPSHOT.bankroll}
+                  </p>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-2 sm:mb-4">
@@ -2528,8 +2559,8 @@ function SiteContent() {
                   }}
                 >
                   <DonutStat
-                    pct={PERFORMANCE.hitRate}
-                    label="Precisión histórica"
+                    pct={METRIKA_SNAPSHOT.hitRate}
+                    label="Acierto verificado"
                     active={dashInView}
                   />
                 </div>
@@ -2542,7 +2573,7 @@ function SiteContent() {
                   }}
                 >
                   <CountUpValue
-                    end={PERFORMANCE.yieldPct}
+                    end={METRIKA_SNAPSHOT.yieldPct}
                     active={dashInView}
                     decimals={1}
                     prefix="+"
@@ -2553,8 +2584,9 @@ function SiteContent() {
                   <span className="text-[10px] sm:text-[11px] mb-2.5" style={{ color: C.muted }}>
                     Yield verificado
                   </span>
+                  {/* Crecimiento real de la banca: de la inicial a la de hoy */}
                   <div
-                    className="w-full h-1.5 rounded-full overflow-hidden"
+                    className="w-full h-1.5 rounded-full overflow-hidden mb-1.5"
                     style={{ background: hexToRgba(C.gold, 0.12) }}
                   >
                     <motion.div
@@ -2565,11 +2597,20 @@ function SiteContent() {
                       style={{ background: GOLD_GRAD }}
                     />
                   </div>
+                  <div
+                    className="w-full flex justify-between text-[9px] sm:text-[10px]"
+                    style={{ color: C.dim }}
+                  >
+                    <span>{METRIKA_SNAPSHOT.opening}</span>
+                    <span style={{ color: C.champagne }}>
+                      +{METRIKA_SNAPSHOT.growthPct}% · {METRIKA_SNAPSHOT.balance}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                {PERFORMANCE.tiles.map((t) => (
+                {METRIKA_SNAPSHOT.tiles.map((t) => (
                   <div
                     key={t.label}
                     className="rounded-lg sm:rounded-xl px-1.5 py-3 sm:px-3 sm:py-4 text-center"
@@ -2581,7 +2622,9 @@ function SiteContent() {
                     <CountUpValue
                       end={t.end}
                       active={dashInView}
-                      prefix="+"
+                      prefix={t.prefix}
+                      suffix={t.suffix}
+                      decimals={t.decimals}
                       className="block text-sm sm:text-xl font-black gradient-text leading-none mb-1"
                       style={{ fontFamily: "Poppins" }}
                     />
@@ -2593,6 +2636,32 @@ function SiteContent() {
                     </p>
                   </div>
                 ))}
+              </div>
+
+              {/* Pie: quién lo audita y enlace al perfil original */}
+              <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                <p
+                  className="text-[10px] sm:text-[11px] text-center sm:text-left leading-tight"
+                  style={{ color: C.dim }}
+                >
+                  Historial inmutable auditado por METRIKA · datos al {METRIKA_SNAPSHOT.updated}
+                </p>
+                <motion.a
+                  href={METRIKA_PROFILE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="shrink-0 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[12px] sm:text-[13px] font-bold"
+                  style={{
+                    background: "transparent",
+                    border: `1px solid ${hexToRgba(C.gold, 0.4)}`,
+                    color: C.goldBright,
+                    fontFamily: "Poppins",
+                  }}
+                >
+                  Ver perfil verificado →
+                </motion.a>
               </div>
             </motion.div>
             ) : (
@@ -2968,6 +3037,7 @@ function SiteContent() {
                 {[
                   { label: "Blog", href: "/blog" },
                   { label: "Canal gratis en Telegram", href: TELEGRAM_FREE },
+                  { label: "Estadísticas verificadas", href: METRIKA_PROFILE },
                   { label: "tipstergold.com", href: SITE_URL },
                 ].map((item) => (
                   <li key={item.label}>
